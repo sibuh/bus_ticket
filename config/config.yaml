@@ -1,0 +1,26 @@
+
+dbconn: postgres://localhost:5432/tickets?sslmode=disable
+server: 
+  port: 8080
+  read_time_out: 5
+payment:
+  session_url: https://gateway.arifpay.net/api/checkout/session
+  success_url: http://localhost:8080/v1/ticket
+  cancel_url: http://localhost:8080/v1/home
+  error_url: http://localhost:8080/v1/err
+  notify_url: https://848b-196-191-60-222.ngrok-free.app/v1/notify
+  item_price: 100.0
+  account_number: *********
+  bank: *******
+  amount: 100.0
+  api_key: ************
+  expire_date: 24
+sms: 
+  token: ***********
+  url: *********
+  template: you have bought event ticket. your ticket id is %v.
+email: 
+  host: *******
+  user_name: ******
+  password: ********
+  subject: *********
