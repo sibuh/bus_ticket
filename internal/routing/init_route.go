@@ -11,11 +11,6 @@ import (
 func InitRouter(group *gin.RouterGroup, handler handler.Ticket) {
 	routes := []Route{
 		{
-			Method:  http.MethodGet,
-			Path:    "/home",
-			Handler: handler.Home,
-		},
-		{
 			Method:  http.MethodPost,
 			Path:    "/buy",
 			Handler: handler.Buy,
