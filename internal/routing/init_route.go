@@ -11,11 +11,6 @@ import (
 func InitRouter(group *gin.RouterGroup, handler handler.Ticket) {
 	routes := []Route{
 		{
-			Method:  http.MethodGet,
-			Path:    "/home",
-			Handler: handler.Home,
-		},
-		{
 			Method:  http.MethodPost,
 			Path:    "/buy",
 			Handler: handler.Buy,
@@ -40,11 +35,6 @@ func InitRouter(group *gin.RouterGroup, handler handler.Ticket) {
 			Path:    "/ticket/:nonce",
 			Handler: handler.GetTicket,
 		},
-		// {
-		// 	Method:  http.MethodGet,
-		// 	Path:    "/home/sibhat/Desktop/hamere/event_ticket/public/pdfs/:pdfname",
-		// 	Handler: handler.GetTicket,
-		// },
 	}
 	RegisterRoutes(group, routes)
 

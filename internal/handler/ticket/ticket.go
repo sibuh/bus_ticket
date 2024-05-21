@@ -30,11 +30,6 @@ func Init(log slog.Logger, url string, module module.Ticket, sms module.Sms, ema
 		email:    email,
 	}
 }
-func (t *ticket) Home(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", nil)
-
-}
-
 func (t *ticket) Buy(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBind(&user); err != nil {

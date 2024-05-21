@@ -5,7 +5,6 @@ import (
 )
 
 type Ticket interface {
-	Home(c *gin.Context)
 	Buy(c *gin.Context)
 	Notify(c *gin.Context)
 	Error(c *gin.Context)
