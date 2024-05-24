@@ -11,3 +11,13 @@ type Ticket interface {
 	Success(c *gin.Context)
 	GetTicket(c *gin.Context)
 }
+
+type Payment interface {
+	GetPublishableKey(c *gin.Context)
+	HandleCreatePaymentIntent(c *gin.Context)
+}
+
+type User interface {
+	CreateUser(c *gin.Context)
+	LoginUser(c *gin.Context)
+}

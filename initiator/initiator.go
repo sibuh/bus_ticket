@@ -2,12 +2,12 @@ package initiator
 
 import (
 	"context"
-	"event_ticket/internal/handler/ticket"
-	"event_ticket/internal/module/email"
-	"event_ticket/internal/module/sms"
-	module "event_ticket/internal/module/ticket"
+	"event_ticket/internal/handler/payment"
+	huser "event_ticket/internal/handler/user"
+
+	muser "event_ticket/internal/module/user"
 	"event_ticket/internal/routing"
-	store "event_ticket/internal/storage/ticket"
+	"event_ticket/internal/storage/user"
 	"fmt"
 	"net/http"
 	"os"
@@ -24,28 +24,18 @@ func Initiate() {
 	InitConfig("config", logger)
 	server := gin.Default()
 	v1 := server.Group("v1")
-	server.LoadHTMLGlob("public/html/*.html")
-	server.Static("/public", "./public")
-	storage := store.Init(logger, fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=disable", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT")))
-	mod := module.Init(
-		logger,
-		viper.GetString("payment.cancel_url"),
-		viper.GetString("payment.error_url"),
-		viper.GetString("payment.notify_url"),
-		viper.GetString("payment.account_number"),
-		viper.GetString("payment.bank"),
-		viper.GetString("payment.session_url"),
-		viper.GetString("payment.success_url"),
-		viper.GetString("payment.api_key"),
-		viper.GetFloat64("payment.item_price"),
-		viper.GetFloat64("payment.amount"),
-		storage,
-		viper.GetDuration("payment.expire_date"),
-	)
-	sms := sms.Init(logger, viper.GetString("sms.token"), viper.GetString("sms.url"), viper.GetString("sms.template"))
-	email := email.Init(logger, viper.GetString("email.host"), viper.GetString("email.user_name"), viper.GetString("email.password"), viper.GetString("email.subject"))
-	handler := ticket.Init(logger, viper.GetString("payment.error_url"), mod, sms, email)
-	routing.InitRouter(v1, handler)
+	logger.Info("initiate database")
+	queries := InitDB(viper.GetString("dbConn"))
+	logger.Info("intiating storage layer")
+	storage := NewStorage(user.Init(logger, queries))
+	module := NewModule(muser.Init(logger, storage.user))
+
+	//sms := sms.Init(logger, viper.GetString("sms.token"), viper.GetString("sms.url"), viper.GetString("sms.template"))
+	//email := email.Init(logger, viper.GetString("email.host"), viper.GetString("email.user_name"), viper.GetString("email.password"), viper.GetString("email.subject"))
+
+	//handler := ticket.Init(logger, viper.GetString("payment.error_url"), mod, sms, email)
+	handler := InitHandler(huser.Init(logger, module.user), payment.Init(viper.GetString("payment.publishable_key"), viper.GetString("payment.secret_key")))
+	routing.InitRouter(v1, handler.user, handler.payment)
 	srv := &http.Server{
 		Addr:        fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port")),
 		ReadTimeout: viper.GetDuration("server.read_time_out") * time.Second,

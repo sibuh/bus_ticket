@@ -1,18 +1,6 @@
 package email
 
-import (
-	"bytes"
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/module"
-	"log"
-	"os"
-	"sync"
-	"text/template"
-
-	"golang.org/x/exp/slog"
-	"gopkg.in/gomail.v2"
-)
-
+/*
 type email struct {
 	logger   slog.Logger
 	host     string
@@ -95,3 +83,4 @@ func (e *email) sendEmail(to string, body string, attachmentPath string) error {
 
 	return nil
 }
+*/

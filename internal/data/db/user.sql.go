@@ -9,51 +9,28 @@ import (
 	"context"
 )
 
-const getUser = `-- name: GetUser :one
-SELECT id, first_name, last_name, phone, email, nonce, payment_status, session_id, check_in, created_at, updated_at FROM users WHERE nonce=$1
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (first_name,last_name,phone,email,username,password) VALUES ($1,$2,$3,$4,$5,$6)
+RETURNING id, first_name, last_name, phone, email, username, password, created_at, updated_at, deleted_at
 `
 
-func (q *Queries) GetUser(ctx context.Context, nonce string) (User, error) {
-	row := q.db.QueryRow(ctx, getUser, nonce)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.FirstName,
-		&i.LastName,
-		&i.Phone,
-		&i.Email,
-		&i.Nonce,
-		&i.PaymentStatus,
-		&i.SessionID,
-		&i.CheckIn,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const registerPayedUser = `-- name: RegisterPayedUser :one
-INSERT INTO users (first_name,last_name,phone,email,nonce,session_id) VALUES ($1,$2,$3,$4,$5,$6)
-RETURNING id, first_name, last_name, phone, email, nonce, payment_status, session_id, check_in, created_at, updated_at
-`
-
-type RegisterPayedUserParams struct {
+type CreateUserParams struct {
 	FirstName string
 	LastName  string
 	Phone     string
 	Email     string
-	Nonce     string
-	SessionID string
+	Username  string
+	Password  string
 }
 
-func (q *Queries) RegisterPayedUser(ctx context.Context, arg RegisterPayedUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, registerPayedUser,
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
 		arg.FirstName,
 		arg.LastName,
 		arg.Phone,
 		arg.Email,
-		arg.Nonce,
-		arg.SessionID,
+		arg.Username,
+		arg.Password,
 	)
 	var i User
 	err := row.Scan(
@@ -62,27 +39,21 @@ func (q *Queries) RegisterPayedUser(ctx context.Context, arg RegisterPayedUserPa
 		&i.LastName,
 		&i.Phone,
 		&i.Email,
-		&i.Nonce,
-		&i.PaymentStatus,
-		&i.SessionID,
-		&i.CheckIn,
+		&i.Username,
+		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
-const updatePaymentStatus = `-- name: UpdatePaymentStatus :one
-UPDATE users SET payment_status=$1 WHERE session_id=$2 RETURNING id, first_name, last_name, phone, email, nonce, payment_status, session_id, check_in, created_at, updated_at
+const getUser = `-- name: GetUser :one
+SELECT id, first_name, last_name, phone, email, username, password, created_at, updated_at, deleted_at FROM users WHERE id=$1
 `
 
-type UpdatePaymentStatusParams struct {
-	PaymentStatus string
-	SessionID     string
-}
-
-func (q *Queries) UpdatePaymentStatus(ctx context.Context, arg UpdatePaymentStatusParams) (User, error) {
-	row := q.db.QueryRow(ctx, updatePaymentStatus, arg.PaymentStatus, arg.SessionID)
+func (q *Queries) GetUser(ctx context.Context, id int32) (User, error) {
+	row := q.db.QueryRow(ctx, getUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -90,12 +61,11 @@ func (q *Queries) UpdatePaymentStatus(ctx context.Context, arg UpdatePaymentStat
 		&i.LastName,
 		&i.Phone,
 		&i.Email,
-		&i.Nonce,
-		&i.PaymentStatus,
-		&i.SessionID,
-		&i.CheckIn,
+		&i.Username,
+		&i.Password,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }

@@ -5,19 +5,29 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
-type User struct {
+type Payment struct {
 	ID            int32
-	FirstName     string
-	LastName      string
-	Phone         string
-	Email         string
-	Nonce         string
+	UserID        int32
 	PaymentStatus string
-	SessionID     string
-	CheckIn       string
+	IntentID      string
+	CheckInStatus string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+}
+
+type User struct {
+	ID        int32
+	FirstName string
+	LastName  string
+	Phone     string
+	Email     string
+	Username  string
+	Password  string
+	CreatedAt time.Time
+	UpdatedAt sql.NullTime
+	DeletedAt sql.NullTime
 }
