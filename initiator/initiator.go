@@ -35,7 +35,7 @@ func Initiate() {
 			storage.user,
 			paseto.NewPasetoMaker(
 				viper.GetString("token.key"),
-				viper.GetDuration("token.duration"))))
+				viper.GetDuration("token.duration")*time.Second)))
 
 	handler := InitHandler(
 		huser.Init(logger, module.user),
