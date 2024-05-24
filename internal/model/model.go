@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"time"
 
 	"net/mail"
 
@@ -10,18 +11,36 @@ import (
 )
 
 type User struct {
-	FirstName string `form:"first_name" json:"first_name"`
-	LastName  string `form:"last_name" json:"last_name"`
-	Phone     string `form:"phone" json:"phone"`
-	Email     string `form:"email" json:"email"`
+	ID        int       `json:"id"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Phone     string    `json:"phone"`
+	Email     string    `json:"email"`
+	Username  string    `json:"username"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (u User) Validate() error {
-	return validation.ValidateStruct(&u,
-		validation.Field(&u.FirstName, validation.Required.Error("first_name is required")),
-		validation.Field(&u.LastName, validation.Required.Error("last_name is required")),
-		validation.Field(&u.Phone, validation.Required.Error("phone is required"), validation.By(ValidatePhone)),
-		validation.Field(&u.Email, validation.Required.Error("email is required"), validation.By(validateEmail)))
+type CreateUserRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Phone     string `json:"phone"`
+	Email     string `json:"email"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+}
+
+func (cur CreateUserRequest) Validate() error {
+	return validation.ValidateStruct(&cur,
+		validation.Field(&cur.FirstName, validation.Required.Error("first_name is required")),
+		validation.Field(&cur.LastName, validation.Required.Error("last_name is required")),
+		validation.Field(&cur.Phone, validation.Required.Error("phone is required"), validation.By(ValidatePhone)),
+		validation.Field(&cur.Email, validation.Required.Error("email is required"), validation.By(validateEmail)),
+		validation.Field(&cur.Password, validation.Required.Error("password is required"),
+			validation.Length(6, 8).Error("password legth should be b/n 6 and 8.")),
+		validation.Field(&cur.Username, validation.Required.Error("username is required")),
+	)
 }
 func ValidatePhone(phone any) error {
 	str := phonenumber.Parse(fmt.Sprintf("%v", phone), "ET")

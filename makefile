@@ -1,7 +1,7 @@
 migrate-up:
-	-migrate -path data/migrations -database "postgres://hamereeth_yared:Gy~1KSFfuVJ4@hamereth:5432/hamereth_events?sslmode=disable" -verbose up
+	-migrate -path internal/data/migrations -database "postgres://sibhat:sibhat@localhost:5432/tickets?sslmode=disable" -verbose up
 migrate-down:
-	-migrate -path data/migrations -database "postgres://hamereeth_yared:Gy~1KSFfuVJ4@hamereth:5432/hamereth_events" -verbose down
+	-migrate -path internal/data/migrations -database "postgres://sibhat:sibhat@localhost:5432/tickets?sslmode=disable" -verbose down
 sqlc:
 	- sqlc generate -f ./config/sqlc.yaml
 run:

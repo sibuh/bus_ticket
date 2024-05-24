@@ -1,25 +1,6 @@
 package ticket
 
-import (
-	"bytes"
-	"encoding/json"
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/model"
-	"event_ticket/internal/module"
-	"event_ticket/internal/storage"
-	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"strings"
-	"time"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/signintech/gopdf"
-	"golang.org/x/exp/slog"
-)
-
+/*
 type ticket struct {
 	log           slog.Logger
 	successUrl    string
@@ -33,7 +14,7 @@ type ticket struct {
 	sessionUrl    string
 	apiKey        string
 	expireDate    time.Duration
-	storage       storage.Ticket
+	storage       storage.User
 }
 
 func Init(
@@ -156,8 +137,8 @@ func (t *ticket) GeneratePDFTicket(userData db.User) (*gopdf.GoPdf, error) {
 	}
 	pdf.SetFont("Arial", "", 8)
 	// Draw QR code
-	qrFileName := fmt.Sprintf("./public/image/qr_%s.png", userData.SessionID) // Use unique ID as file name
-	qrURL := fmt.Sprintf("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s", userData.SessionID)
+	qrFileName := fmt.Sprintf("./public/image/qr_%d.png", userData.ID) // Use unique ID as file name
+	qrURL := fmt.Sprintf("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%d", userData.ID)
 	qrImage, err := http.Get(qrURL)
 	if err != nil {
 		return nil, err
@@ -209,10 +190,5 @@ func (t *ticket) GeneratePDFTicket(userData db.User) (*gopdf.GoPdf, error) {
 	return &pdf, nil
 }
 
-func (t *ticket) GetUser(nonce string) (db.User, error) {
-	user, err := t.storage.GetUser(nonce)
-	if err != nil {
-		return db.User{}, err
-	}
-	return user, nil
-}
+
+*/

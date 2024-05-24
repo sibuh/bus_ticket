@@ -1,18 +1,6 @@
 package sms
 
-import (
-	"bytes"
-	"encoding/json"
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/model"
-	"event_ticket/internal/module"
-	"fmt"
-	"net/http"
-	"sync"
-
-	"golang.org/x/exp/slog"
-)
-
+/*
 type sms struct {
 	logger  slog.Logger
 	token   string
@@ -34,7 +22,7 @@ func (s *sms) SendSms(user db.User, wg *sync.WaitGroup) error {
 	var payload = model.Sms{
 		Token: s.token,
 		Phone: user.Phone,
-		Msg:   fmt.Sprintf(s.message, user.SessionID),
+		Msg:   fmt.Sprintf(s.message, user.ID),
 	}
 
 	payloadByte, err := json.Marshal(payload)
@@ -50,3 +38,4 @@ func (s *sms) SendSms(user db.User, wg *sync.WaitGroup) error {
 	}
 	return nil
 }
+*/

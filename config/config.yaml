@@ -1,11 +1,8 @@
 
-dbconn: 
+dbconn: postgres://sibhat:sibhat@localhost:5432/tickets?sslmode=disable
 server: 
   port: 8080
   read_time_out: 5
-payment:
-  publishable_key: 
-  secret_key: 
 sms: 
   token: 
   url: 
@@ -14,4 +11,8 @@ email:
   host: localhost
   user_name: 
   password: 
-  subject:s
+  subject: s
+payment:
+  publishable_key: pk_test_51PGL3Q2KjagCe3D0Dr0NToe5FEiEkSmiLGvDspdGuq6QVaBBeejsRXPemaEqRVCiCh2HtsoK6rhdEK36kbgXIerl00VGd6dVKu
+  secret_key: pk_test_51PGL3Q2KjagCe3D0Dr0NToe5FEiEkSmiLGvDspdGuq6QVaBBeejsRXPemaEqRVCiCh2HtsoK6rhdEK36kbgXIerl00VGd6dVKu
+

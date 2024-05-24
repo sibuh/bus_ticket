@@ -8,32 +8,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter(group *gin.RouterGroup, handler handler.Ticket) {
+func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment) {
 	routes := []Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/buy",
-			Handler: handler.Buy,
+			Path:    "/create",
+			Handler: u.CreateUser,
 		},
+
 		{
-			Method:  http.MethodPost,
-			Path:    "/notify",
-			Handler: handler.Notify,
+			Method:  http.MethodGet,
+			Path:    "/pk",
+			Handler: p.GetPublishableKey,
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/err",
-			Handler: handler.Error,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/success",
-			Handler: handler.Success,
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/ticket/:nonce",
-			Handler: handler.GetTicket,
+			Path:    "/cpi",
+			Handler: p.HandleCreatePaymentIntent,
 		},
 	}
 	RegisterRoutes(group, routes)
