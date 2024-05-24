@@ -4,4 +4,4 @@ INSERT INTO users (first_name,last_name,phone,email,username,password) VALUES ($
 RETURNING *;
 
 -- name: GetUser :one
-SELECT * FROM users WHERE id=$1;
+SELECT * FROM users WHERE username=$1;

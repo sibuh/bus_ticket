@@ -7,5 +7,5 @@ import (
 
 type User interface {
 	CreateUser(ctx context.Context, usr model.CreateUserRequest) (model.User, error)
-	GetUser(ctx context.Context, id int32) (model.User, error)
+	GetUser(ctx context.Context, username string) (model.User, error)
 }
