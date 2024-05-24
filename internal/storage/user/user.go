@@ -47,8 +47,8 @@ func (t *user) CreateUser(ctx context.Context, usr model.CreateUserRequest) (mod
 
 }
 
-func (t *user) GetUser(ctx context.Context, id int32) (model.User, error) {
-	user, err := t.queries.GetUser(context.Background(), int32(id))
+func (t *user) GetUser(ctx context.Context, username string) (model.User, error) {
+	user, err := t.queries.GetUser(ctx, username)
 	if err != nil {
 		t.log.Error("failed to get user with the given id", err)
 		return model.User{}, err

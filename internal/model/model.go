@@ -42,6 +42,19 @@ func (cur CreateUserRequest) Validate() error {
 		validation.Field(&cur.Username, validation.Required.Error("username is required")),
 	)
 }
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func (lr *LoginRequest) Validate() error {
+	return validation.ValidateStruct(&lr,
+		validation.Field(&lr.Password, validation.Required.Error("password is required"),
+			validation.Length(6, 8).Error("password legth should be b/n 6 and 8.")),
+		validation.Field(&lr.Username, validation.Required.Error("username is required")))
+}
+
 func ValidatePhone(phone any) error {
 	str := phonenumber.Parse(fmt.Sprintf("%v", phone), "ET")
 	if str == "" {
@@ -106,4 +119,14 @@ type Sms struct {
 	Token string `json:"token"`
 	Phone string `json:"phone"`
 	Msg   string `json:"msg"`
+}
+
+type Error struct {
+	ErrCode   int    `json:"err_code"`
+	Message   string `json:"message"`
+	RootError error  `json:"root_error"`
+}
+
+func (e *Error) Error() string {
+	return e.Message
 }

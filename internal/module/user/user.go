@@ -6,47 +6,77 @@ import (
 	"event_ticket/internal/module"
 	"event_ticket/internal/storage"
 	"event_ticket/internal/utils/pass"
+	"event_ticket/internal/utils/token"
 	"fmt"
+	"net/http"
 
 	"golang.org/x/exp/slog"
 )
 
 type user struct {
-	logger slog.Logger
-	user   storage.User
+	logger     slog.Logger
+	user       storage.User
+	tokenMaker token.TokenMaker
 }
 
-func Init(logger slog.Logger, usr storage.User) module.User {
+func Init(logger slog.Logger, usr storage.User, tokenMaker token.TokenMaker) module.User {
+
 	return &user{
-		logger: logger,
-		user:   usr,
+		logger:     logger,
+		user:       usr,
+		tokenMaker: tokenMaker,
 	}
 
 }
 
 func (u *user) CreateUser(ctx context.Context, usr model.CreateUserRequest) (model.User, error) {
 	if err := usr.Validate(); err != nil {
-		return model.User{}, err
+		newError := model.Error{
+			ErrCode:   http.StatusBadRequest,
+			Message:   "invalid input",
+			RootError: err,
+		}
+		u.logger.Info("invalid user input", newError)
+		return model.User{}, &newError
 	}
 	hash, err := pass.HashPassword(usr.Password)
 	if err != nil {
-		return model.User{}, err
+		newError := model.Error{
+			ErrCode:   http.StatusBadRequest,
+			Message:   "failed to hash password",
+			RootError: err,
+		}
+		u.logger.Error("failed to hash password", newError)
+		return model.User{}, &newError
 	}
-	fmt.Println("request data:", usr, usr.Password)
 	usr.Password = hash
-	createdUser, err := u.user.CreateUser(ctx, usr)
-	if err != nil {
-		u.logger.Error("failed to create user", err)
-		return model.User{}, err
+
+	return u.user.CreateUser(ctx, usr)
+}
+
+func (u *user) LoginUser(ctx context.Context, logReq model.LoginRequest) (string, error) {
+	if err := logReq.Validate(); err != nil {
+		newError := model.Error{
+			ErrCode:   http.StatusBadRequest,
+			Message:   "invalid user input",
+			RootError: err,
+		}
+		u.logger.Info("invalid user input", newError.RootError.Error())
+		return "", &newError
 	}
-	return createdUser, nil
 
-}
-func (u *user) GetUser(ctx context.Context, id int32) (model.User, error) {
+	usr, err := u.user.GetUser(ctx, logReq.Username)
+	if err != nil {
+		return "", err
+	}
+	if !pass.CheckHashPassword(logReq.Password, usr.Password) {
+		newError := model.Error{
+			ErrCode:   http.StatusBadRequest,
+			Message:   "incorrect password",
+			RootError: fmt.Errorf("invalid input"),
+		}
+		return "", &newError
+	}
 
-	return u.user.GetUser(ctx, id)
-}
-func (u *user) LoginUser(ctx context.Context) (string, error) {
-	return "", nil
-
+	return u.tokenMaker.CreateToken(usr.Username)
 }

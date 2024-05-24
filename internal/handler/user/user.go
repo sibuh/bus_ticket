@@ -25,18 +25,44 @@ func Init(logger slog.Logger, usr module.User) handler.User {
 func (u *user) CreateUser(c *gin.Context) {
 	var user model.CreateUserRequest
 	if err := c.ShouldBind(&user); err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		newError := model.Error{
+			ErrCode:   http.StatusBadRequest,
+			Message:   "failed to marshal response body",
+			RootError: err,
+		}
+		c.JSON(http.StatusBadRequest, newError)
 		return
 	}
 	createdUser, err := u.user.CreateUser(c, user)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		newError := err.(*model.Error)
+		c.JSON(newError.ErrCode, err)
 		return
 	}
 	c.JSON(http.StatusOK, createdUser)
 
 }
 func (u *user) LoginUser(c *gin.Context) {
+	var logReq model.LoginRequest
+	if err := c.ShouldBind(&logReq); err != nil {
+
+		newError := model.Error{
+			ErrCode:   http.StatusBadRequest,
+			Message:   "failed to bind the request body",
+			RootError: err,
+		}
+		u.logger.Error("failed to bind the request body", newError)
+		c.JSON(newError.ErrCode, newError)
+		return
+	}
+	token, err := u.user.LoginUser(c, logReq)
+	if err != nil {
+		newErr := err.(*model.Error)
+		c.JSON(newErr.ErrCode, newErr)
+		return
+	}
+	c.Header("Authorization", token)
+	c.JSON(http.StatusOK, nil)
 
 }

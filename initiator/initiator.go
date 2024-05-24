@@ -4,6 +4,7 @@ import (
 	"context"
 	"event_ticket/internal/handler/payment"
 	huser "event_ticket/internal/handler/user"
+	"event_ticket/internal/utils/token/paseto"
 
 	muser "event_ticket/internal/module/user"
 	"event_ticket/internal/routing"
@@ -28,13 +29,19 @@ func Initiate() {
 	queries := InitDB(viper.GetString("dbConn"))
 	logger.Info("intiating storage layer")
 	storage := NewStorage(user.Init(logger, queries))
-	module := NewModule(muser.Init(logger, storage.user))
+	module := NewModule(
+		muser.Init(
+			logger,
+			storage.user,
+			paseto.NewPasetoMaker(
+				viper.GetString("token.key"),
+				viper.GetDuration("token.duration")*time.Second)))
 
-	//sms := sms.Init(logger, viper.GetString("sms.token"), viper.GetString("sms.url"), viper.GetString("sms.template"))
-	//email := email.Init(logger, viper.GetString("email.host"), viper.GetString("email.user_name"), viper.GetString("email.password"), viper.GetString("email.subject"))
-
-	//handler := ticket.Init(logger, viper.GetString("payment.error_url"), mod, sms, email)
-	handler := InitHandler(huser.Init(logger, module.user), payment.Init(viper.GetString("payment.publishable_key"), viper.GetString("payment.secret_key")))
+	handler := InitHandler(
+		huser.Init(logger, module.user),
+		payment.Init(
+			viper.GetString("payment.publishable_key"),
+			viper.GetString("payment.secret_key")))
 	routing.InitRouter(v1, handler.user, handler.payment)
 	srv := &http.Server{
 		Addr:        fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port")),
