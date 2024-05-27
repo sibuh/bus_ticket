@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -25,6 +26,12 @@ func Initiate() {
 	InitConfig("config", logger)
 	server := gin.Default()
 	v1 := server.Group("v1")
+	corsConfig := cors.Config{
+		AllowAllOrigins: true,
+		AllowMethods:    []string{"GET", "POST", "DELETE", "PATCH"},
+	}
+	corsMiddleware := cors.New(corsConfig)
+	v1.Use(corsMiddleware)
 	logger.Info("initiate database")
 	queries := InitDB(viper.GetString("dbConn"))
 	logger.Info("intiating storage layer")

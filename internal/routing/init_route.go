@@ -12,8 +12,13 @@ func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment) {
 	routes := []Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/create",
+			Path:    "/register",
 			Handler: u.CreateUser,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/login",
+			Handler: u.LoginUser,
 		},
 
 		{
