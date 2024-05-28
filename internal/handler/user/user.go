@@ -24,7 +24,7 @@ func Init(logger slog.Logger, usr module.User) handler.User {
 
 func (u *user) CreateUser(c *gin.Context) {
 	var user model.CreateUserRequest
-	if err := c.ShouldBind(&user); err != nil {
+	if err := c.ShouldBindJSON(&user); err != nil {
 		newError := model.Error{
 			ErrCode:   http.StatusBadRequest,
 			Message:   "failed to marshal response body",

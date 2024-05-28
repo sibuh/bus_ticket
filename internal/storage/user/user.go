@@ -59,6 +59,8 @@ func (t *user) GetUser(ctx context.Context, username string) (model.User, error)
 		LastName:  user.LastName,
 		Phone:     user.Phone,
 		Email:     user.Email,
+		Username:  user.Username,
+		Password:  user.Password,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt.Time,
 	}, nil
