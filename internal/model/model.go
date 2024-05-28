@@ -48,7 +48,7 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func (lr *LoginRequest) Validate() error {
+func (lr LoginRequest) Validate() error {
 	return validation.ValidateStruct(&lr,
 		validation.Field(&lr.Password, validation.Required.Error("password is required"),
 			validation.Length(6, 8).Error("password legth should be b/n 6 and 8.")),

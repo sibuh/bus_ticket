@@ -17,5 +17,5 @@ payment:
   secret_key: pk_test_51PGL3Q2KjagCe3D0Dr0NToe5FEiEkSmiLGvDspdGuq6QVaBBeejsRXPemaEqRVCiCh2HtsoK6rhdEK36kbgXIerl00VGd6dVKu
 
 token: 
-  key: 01234567890123456789012345678901
+  key: "01234567890123456789012345678901"
   duration: 60
