@@ -62,7 +62,7 @@ func (u *user) LoginUser(c *gin.Context) {
 		c.JSON(newErr.ErrCode, newErr)
 		return
 	}
-	c.Header("Authorization", token)
-	c.JSON(http.StatusOK, nil)
-
+	c.JSON(http.StatusOK, struct {
+		Token string `json:"token"`
+	}{Token: token})
 }
