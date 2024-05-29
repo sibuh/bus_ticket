@@ -43,6 +43,14 @@ func (e *event) PostEvent(c *gin.Context) {
 	c.JSON(http.StatusOK, ev)
 }
 
-func (e *event) FetchEvent(c *gin.Context) {
+func (e *event) FetchEvents(c *gin.Context) {
 
+	events, err := e.em.FetchEvents(c)
+	if err != nil {
+		e := err.(*model.Error)
+		c.JSON(e.ErrCode, e)
+		return
+	}
+	//TODO: pagination for FetchEvents
+	c.JSON(http.StatusOK, events)
 }

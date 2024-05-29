@@ -132,12 +132,13 @@ func (e *Error) Error() string {
 }
 
 type Event struct {
-	ID          int       `json:"id"`
+	ID          int32     `json:"id"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
-	UserID      int       `json:"user_id"`
+	UserID      int32     `json:"user_id"`
 	StartDate   time.Time `json:"start_date"`
 	EndDate     time.Time `json:"end_date"`
+	Price       float64   `json:"price"`
 	CreateAt    time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	DeletedAt   time.Time `json:"deleted_at"`
