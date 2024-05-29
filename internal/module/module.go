@@ -26,4 +26,5 @@ type User interface {
 }
 type Event interface {
 	PostEvent(ctx context.Context, postEvent model.Event) (model.Event, error)
+	FetchEvents(ctx context.Context) ([]model.Event, error)
 }

@@ -11,8 +11,8 @@ import (
 )
 
 const addEvent = `-- name: AddEvent :one
-INSERT INTO events (title,description,user_id,start_date,end_date) VALUES ($1,$2,$3,$4,$5)
-RETURNING id, title, description, user_id, start_date, end_date, created_at, updated_at, deleted_at
+INSERT INTO events (title,description,user_id,start_date,end_date,price) VALUES ($1,$2,$3,$4,$5,$6)
+RETURNING id, title, description, user_id, start_date, end_date, price, created_at, updated_at, deleted_at
 `
 
 type AddEventParams struct {
@@ -21,6 +21,7 @@ type AddEventParams struct {
 	UserID      int32
 	StartDate   time.Time
 	EndDate     time.Time
+	Price       float64
 }
 
 func (q *Queries) AddEvent(ctx context.Context, arg AddEventParams) (Event, error) {
@@ -30,6 +31,7 @@ func (q *Queries) AddEvent(ctx context.Context, arg AddEventParams) (Event, erro
 		arg.UserID,
 		arg.StartDate,
 		arg.EndDate,
+		arg.Price,
 	)
 	var i Event
 	err := row.Scan(
@@ -39,6 +41,7 @@ func (q *Queries) AddEvent(ctx context.Context, arg AddEventParams) (Event, erro
 		&i.UserID,
 		&i.StartDate,
 		&i.EndDate,
+		&i.Price,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -46,23 +49,37 @@ func (q *Queries) AddEvent(ctx context.Context, arg AddEventParams) (Event, erro
 	return i, err
 }
 
-const getEvent = `-- name: GetEvent :one
-SELECT id, title, description, user_id, start_date, end_date, created_at, updated_at, deleted_at FROM events
+const fetchEvents = `-- name: FetchEvents :many
+SELECT id, title, description, user_id, start_date, end_date, price, created_at, updated_at, deleted_at FROM events
 `
 
-func (q *Queries) GetEvent(ctx context.Context) (Event, error) {
-	row := q.db.QueryRow(ctx, getEvent)
-	var i Event
-	err := row.Scan(
-		&i.ID,
-		&i.Title,
-		&i.Description,
-		&i.UserID,
-		&i.StartDate,
-		&i.EndDate,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
-	)
-	return i, err
+func (q *Queries) FetchEvents(ctx context.Context) ([]Event, error) {
+	rows, err := q.db.Query(ctx, fetchEvents)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.UserID,
+			&i.StartDate,
+			&i.EndDate,
+			&i.Price,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

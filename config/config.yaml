@@ -13,8 +13,8 @@ email:
   password: 
   subject: s
 payment:
-  publishable_key: pk_test_51PGL3Q2KjagCe3D0Dr0NToe5FEiEkSmiLGvDspdGuq6QVaBBeejsRXPemaEqRVCiCh2HtsoK6rhdEK36kbgXIerl00VGd6dVKu
-  secret_key: pk_test_51PGL3Q2KjagCe3D0Dr0NToe5FEiEkSmiLGvDspdGuq6QVaBBeejsRXPemaEqRVCiCh2HtsoK6rhdEK36kbgXIerl00VGd6dVKu
+  publishable_key: "pk_test_51PGL3Q2KjagCe3D0Dr0NToe5FEiEkSmiLGvDspdGuq6QVaBBeejsRXPemaEqRVCiCh2HtsoK6rhdEK36kbgXIerl00VGd6dVKu"
+  secret_key: "sk_test_51PGL3Q2KjagCe3D0mmP6FYm4N14DIuZNAe5qJhRFN0vy5e2q5JfRrlvWM78sfdkVVp1EEWwFyoCsGKU65f9lqbX500i4tt2Fxl"
 
 token: 
   key: "01234567890123456789012345678901"

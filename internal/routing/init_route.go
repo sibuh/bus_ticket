@@ -27,7 +27,7 @@ func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e han
 			Handler: p.GetPublishableKey,
 		},
 		{
-			Method:  http.MethodGet,
+			Method:  http.MethodPost,
 			Path:    "/cpi",
 			Handler: p.HandleCreatePaymentIntent,
 		},
@@ -35,6 +35,11 @@ func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e han
 			Method:  http.MethodPost,
 			Path:    "/events",
 			Handler: e.PostEvent,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/events",
+			Handler: e.FetchEvents,
 		},
 	}
 	RegisterRoutes(group, routes)

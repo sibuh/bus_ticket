@@ -5,6 +5,7 @@ CREATE TABLE events(
     user_id int NOT NULL,
     start_date TIMESTAMPtz NOT NULL,
     end_date TIMESTAMPtz NOT NULL,
+    price FLOAT NOT NULL DEFAULT 0.0,
     created_at TIMESTAMPtz NOT NULL DEFAULT 'now()',
     updated_at TIMESTAMPtz NOT NULL DEFAULT 'now()',
     deleted_at TIMESTAMPtz NULL

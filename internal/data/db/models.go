@@ -16,6 +16,7 @@ type Event struct {
 	UserID      int32
 	StartDate   time.Time
 	EndDate     time.Time
+	Price       float64
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   sql.NullTime
