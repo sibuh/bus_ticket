@@ -21,3 +21,9 @@ type User interface {
 	CreateUser(c *gin.Context)
 	LoginUser(c *gin.Context)
 }
+
+type Event interface {
+	PostEvent(c *gin.Context)
+	FetchEvent(c *gin.Context)
+}
+

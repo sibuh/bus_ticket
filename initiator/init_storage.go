@@ -5,11 +5,13 @@ import (
 )
 
 type Storage struct {
-	user storage.User
+	user  storage.User
+	event storage.Event
 }
 
-func NewStorage(user storage.User) *Storage {
+func NewStorage(user storage.User, event storage.Event) *Storage {
 	return &Storage{
-		user: user,
+		user:  user,
+		event: event,
 	}
 }

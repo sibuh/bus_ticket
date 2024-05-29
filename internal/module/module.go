@@ -24,3 +24,6 @@ type User interface {
 	CreateUser(ctx context.Context, usr model.CreateUserRequest) (model.User, error)
 	LoginUser(ctx context.Context, logReq model.LoginRequest) (string, error)
 }
+type Event interface {
+	PostEvent(ctx context.Context, postEvent model.Event) (model.Event, error)
+}
