@@ -130,3 +130,15 @@ type Error struct {
 func (e *Error) Error() string {
 	return e.Message
 }
+
+type Event struct {
+	ID          int       `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	UserID      int       `json:"user_id"`
+	StartDate   time.Time `json:"start_date"`
+	EndDate     time.Time `json:"end_date"`
+	CreateAt    time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	DeletedAt   time.Time `json:"deleted_at"`
+}

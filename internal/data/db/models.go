@@ -9,6 +9,18 @@ import (
 	"time"
 )
 
+type Event struct {
+	ID          int32
+	Title       string
+	Description string
+	UserID      int32
+	StartDate   time.Time
+	EndDate     time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   sql.NullTime
+}
+
 type Payment struct {
 	ID            int32
 	UserID        int32

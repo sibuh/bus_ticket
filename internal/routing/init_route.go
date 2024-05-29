@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment) {
+func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e handler.Event) {
 	routes := []Route{
 		{
 			Method:  http.MethodPost,
@@ -30,6 +30,11 @@ func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment) {
 			Method:  http.MethodGet,
 			Path:    "/cpi",
 			Handler: p.HandleCreatePaymentIntent,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/events",
+			Handler: e.PostEvent,
 		},
 	}
 	RegisterRoutes(group, routes)
