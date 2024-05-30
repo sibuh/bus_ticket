@@ -27,7 +27,8 @@ func (e *event) PostEvent(ctx context.Context, postEvent model.Event) (model.Eve
 }
 
 func (e *event) FetchEvents(ctx context.Context) ([]model.Event, error) {
-
 	return e.es.FetchEvents(ctx)
-
+}
+func (e *event) FetchEvent(ctx context.Context, id int32) (model.Event, error) {
+	return e.es.FetchEvent(ctx, id)
 }

@@ -15,6 +15,7 @@ type Ticket interface {
 type Payment interface {
 	GetPublishableKey(c *gin.Context)
 	HandleCreatePaymentIntent(c *gin.Context)
+	PaymentWebhook(c *gin.Context)
 }
 
 type User interface {

@@ -27,4 +27,9 @@ type User interface {
 type Event interface {
 	PostEvent(ctx context.Context, postEvent model.Event) (model.Event, error)
 	FetchEvents(ctx context.Context) ([]model.Event, error)
+	FetchEvent(ctx context.Context, id int32) (model.Event, error)
+}
+
+type Payment interface {
+	CreatePaymentIntent(ctx context.Context, userID, eventID int32) (string, error)
 }

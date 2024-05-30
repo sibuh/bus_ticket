@@ -5,6 +5,7 @@ import (
 	"event_ticket/internal/handler/payment"
 	huser "event_ticket/internal/handler/user"
 	"event_ticket/internal/middleware"
+	mpayment "event_ticket/internal/module/payment"
 	"event_ticket/internal/utils/token/paseto"
 
 	hevnt "event_ticket/internal/handler/event"
@@ -41,13 +42,16 @@ func Initiate() {
 			paseto.NewPasetoMaker(
 				viper.GetString("token.key"),
 				viper.GetDuration("token.duration")*time.Second)),
-		storage.event)
+		storage.event,
+		mpayment.Init(&logger, storage.event),
+	)
 
 	handler := InitHandler(
 		huser.Init(logger, module.user),
 		payment.Init(
 			viper.GetString("payment.publishable_key"),
-			viper.GetString("payment.secret_key")),
+			viper.GetString("payment.secret_key"),
+			logger, module.payment),
 		hevnt.Init(&logger, module.event),
 	)
 	routing.InitRouter(v1, handler.user, handler.payment, handler.event)

@@ -4,3 +4,6 @@ RETURNING *;
 
 -- name: FetchEvents :many
 SELECT * FROM events;
+
+-- name: FetchEvent :one
+SELECT * FROM events where id=$1;

@@ -49,6 +49,28 @@ func (q *Queries) AddEvent(ctx context.Context, arg AddEventParams) (Event, erro
 	return i, err
 }
 
+const fetchEvent = `-- name: FetchEvent :one
+SELECT id, title, description, user_id, start_date, end_date, price, created_at, updated_at, deleted_at FROM events where id=$1
+`
+
+func (q *Queries) FetchEvent(ctx context.Context, id int32) (Event, error) {
+	row := q.db.QueryRow(ctx, fetchEvent, id)
+	var i Event
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.UserID,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Price,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const fetchEvents = `-- name: FetchEvents :many
 SELECT id, title, description, user_id, start_date, end_date, price, created_at, updated_at, deleted_at FROM events
 `
