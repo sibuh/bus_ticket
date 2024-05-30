@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"event_ticket/internal/handler"
 	"event_ticket/internal/model"
+	"event_ticket/internal/module"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v78"
-	"github.com/stripe/stripe-go/v78/paymentintent"
 	"golang.org/x/exp/slog"
 )
 
@@ -19,13 +18,15 @@ type payment struct {
 	publishableKey string
 	secretKey      string
 	logger         slog.Logger
+	em             module.Payment
 }
 
-func Init(pkey, secretKey string, logger slog.Logger) handler.Payment {
+func Init(pkey, secretKey string, logger slog.Logger, em module.Payment) handler.Payment {
 	return &payment{
 		publishableKey: pkey,
 		secretKey:      secretKey,
 		logger:         logger,
+		em:             em,
 	}
 }
 
@@ -39,27 +40,15 @@ func (p *payment) HandleCreatePaymentIntent(c *gin.Context) {
 	fmt.Println("secret key:", p.secretKey)
 	eventID, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 32)
 	userID := c.Value("id").(int)
-
-	//TODO: FETCH EVENT PRICE AND CREATE PAYMENT INTENT BASED ON THAT
-	params := &stripe.PaymentIntentParams{
-		Amount:   stripe.Int64(2000),
-		Currency: stripe.String(string(stripe.CurrencyUSD)),
-		AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
-			Enabled: stripe.Bool(true),
-		},
-	}
-
-	pi, err := paymentintent.New(params)
-	log.Printf("pi.New: %v", pi.ClientSecret)
-
+	clientSecret, err := p.em.CreatePaymentIntent(c, int32(userID), int32(eventID))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		log.Printf("pi.New: %v", err)
+		newError := err.(*model.Error)
+		c.JSON(newError.ErrCode, newError)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"clientSecret": pi.ClientSecret,
+		"clientSecret": clientSecret,
 	})
 }
 func (p *payment) PaymentWebhook(c *gin.Context) {
