@@ -35,7 +35,7 @@ func (t *user) CreateUser(ctx context.Context, usr model.CreateUserRequest) (mod
 		return model.User{}, err
 	}
 	return model.User{
-		ID:        int(u.ID),
+		ID:        u.ID,
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Phone:     u.Phone,
@@ -54,7 +54,7 @@ func (t *user) GetUser(ctx context.Context, username string) (model.User, error)
 		return model.User{}, err
 	}
 	return model.User{
-		ID:        int(user.ID),
+		ID:        user.ID,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Phone:     user.Phone,

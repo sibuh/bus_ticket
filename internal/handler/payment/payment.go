@@ -5,7 +5,6 @@ import (
 	"event_ticket/internal/handler"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -37,7 +36,6 @@ func (p *payment) GetPublishableKey(c *gin.Context) {
 func (p *payment) HandleCreatePaymentIntent(c *gin.Context) {
 
 	stripe.Key = p.secretKey
-	fmt.Println("secret key:", p.secretKey)
 	eventID, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 32)
 	userID := c.Value("id").(int)
 	clientSecret, err := p.em.CreatePaymentIntent(c, int32(userID), int32(eventID))

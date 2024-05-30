@@ -51,7 +51,7 @@ func (p *pasetoMaker) VerifyToken(tokenString string) (*token.Payload, error) {
 		return nil, err
 	}
 	if !payload.Valid() {
-		return nil, fmt.Errorf("token has been expired")
+		return nil, fmt.Errorf("token is expired")
 	}
 	return &payload, err
 }

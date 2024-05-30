@@ -35,13 +35,14 @@ func Initiate() {
 	queries := InitDB(viper.GetString("dbConn"))
 	logger.Info("intiating storage layer")
 	storage := NewStorage(user.Init(logger, queries), event.Init(&logger, queries))
+	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration")*time.Second)
+	mware := middleware.NewMiddleware(logger, maker, storage.user)
 	module := NewModule(
 		muser.Init(
 			logger,
 			storage.user,
-			paseto.NewPasetoMaker(
-				viper.GetString("token.key"),
-				viper.GetDuration("token.duration")*time.Second)),
+			maker,
+		),
 		storage.event,
 		mpayment.Init(&logger, storage.event),
 	)
@@ -54,7 +55,7 @@ func Initiate() {
 			logger, module.payment),
 		hevnt.Init(&logger, module.event),
 	)
-	routing.InitRouter(v1, handler.user, handler.payment, handler.event)
+	routing.InitRouter(v1, handler.user, handler.payment, handler.event, mware)
 	srv := &http.Server{
 		Addr:        fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port")),
 		ReadTimeout: viper.GetDuration("server.read_time_out") * time.Second,
