@@ -2,6 +2,8 @@ package event
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 	"event_ticket/internal/storage"
@@ -87,4 +89,38 @@ func (e *event) FetchEvents(ctx context.Context) ([]model.Event, error) {
 		})
 	}
 	return events, nil
+}
+func (e *event) FetchEvent(ctx context.Context, id int32) (model.Event, error) {
+	ev, err := e.db.FetchEvent(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			newError := model.Error{
+				ErrCode:   http.StatusNotFound,
+				Message:   "resource not found",
+				RootError: err,
+			}
+			e.logger.Info("The resource does not exist", newError)
+			return model.Event{}, &newError
+		}
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "unable to get event",
+			RootError: err,
+		}
+		e.logger.Error("failed to get the event", newError)
+		return model.Event{}, &newError
+
+	}
+	return model.Event{
+		ID:          ev.ID,
+		Title:       ev.Title,
+		Description: ev.Description,
+		StartDate:   ev.StartDate,
+		EndDate:     ev.EndDate,
+		Price:       ev.Price,
+		CreateAt:    ev.CreatedAt,
+		UpdatedAt:   ev.UpdatedAt,
+		DeletedAt:   ev.DeletedAt.Time,
+	}, nil
+
 }

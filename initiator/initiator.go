@@ -47,7 +47,8 @@ func Initiate() {
 		huser.Init(logger, module.user),
 		payment.Init(
 			viper.GetString("payment.publishable_key"),
-			viper.GetString("payment.secret_key")),
+			viper.GetString("payment.secret_key"),
+			logger),
 		hevnt.Init(&logger, module.event),
 	)
 	routing.InitRouter(v1, handler.user, handler.payment, handler.event)

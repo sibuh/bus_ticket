@@ -25,6 +25,7 @@ type Event struct {
 type Payment struct {
 	ID            int32
 	UserID        int32
+	EventID       int32
 	PaymentStatus string
 	IntentID      string
 	CheckInStatus string
