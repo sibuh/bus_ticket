@@ -2,13 +2,14 @@ package routing
 
 import (
 	"event_ticket/internal/handler"
+	"event_ticket/internal/middleware"
 
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e handler.Event) {
+func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e handler.Event, md middleware.Middleware) {
 	routes := []Route{
 		{
 			Method:  http.MethodPost,
@@ -25,21 +26,25 @@ func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e han
 			Method:  http.MethodGet,
 			Path:    "/pk",
 			Handler: p.GetPublishableKey,
+			Mwares:  []gin.HandlerFunc{md.Authenticate()},
 		},
 		{
 			Method:  http.MethodPost,
 			Path:    "/cpi",
 			Handler: p.HandleCreatePaymentIntent,
+			Mwares:  []gin.HandlerFunc{md.Authenticate()},
 		},
 		{
 			Method:  http.MethodPost,
 			Path:    "/events",
 			Handler: e.PostEvent,
+			Mwares:  []gin.HandlerFunc{md.Authenticate()},
 		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/events",
 			Handler: e.FetchEvents,
+			Mwares:  []gin.HandlerFunc{md.Authenticate()},
 		},
 	}
 	RegisterRoutes(group, routes)
