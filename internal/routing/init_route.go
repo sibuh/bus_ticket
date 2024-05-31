@@ -21,7 +21,12 @@ func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e han
 			Path:    "/login",
 			Handler: u.LoginUser,
 		},
-
+		{
+			Method:  http.MethodGet,
+			Path:    "/token",
+			Handler: u.RefreshToken,
+			Mwares:  []gin.HandlerFunc{md.Authenticate()},
+		},
 		{
 			Method:  http.MethodGet,
 			Path:    "/pk",
