@@ -21,6 +21,7 @@ type Payment interface {
 type User interface {
 	CreateUser(c *gin.Context)
 	LoginUser(c *gin.Context)
+	RefreshToken(c *gin.Context)
 }
 
 type Event interface {

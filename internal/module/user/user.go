@@ -80,3 +80,7 @@ func (u *user) LoginUser(ctx context.Context, logReq model.LoginRequest) (string
 
 	return u.tokenMaker.CreateToken(usr.Username)
 }
+
+func (u *user) RefreshToken(ctx context.Context, username string) (string, error) {
+	return u.tokenMaker.CreateToken(username)
+}

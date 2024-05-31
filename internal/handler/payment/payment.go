@@ -17,15 +17,15 @@ type payment struct {
 	publishableKey string
 	secretKey      string
 	logger         slog.Logger
-	em             module.Payment
+	pm             module.Payment
 }
 
-func Init(pkey, secretKey string, logger slog.Logger, em module.Payment) handler.Payment {
+func Init(pkey, secretKey string, logger slog.Logger, pm module.Payment) handler.Payment {
 	return &payment{
 		publishableKey: pkey,
 		secretKey:      secretKey,
 		logger:         logger,
-		em:             em,
+		pm:             pm,
 	}
 }
 
@@ -38,7 +38,7 @@ func (p *payment) HandleCreatePaymentIntent(c *gin.Context) {
 	stripe.Key = p.secretKey
 	eventID, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 32)
 	userID := c.Value("id").(int)
-	clientSecret, err := p.em.CreatePaymentIntent(c, int32(userID), int32(eventID))
+	clientSecret, err := p.pm.CreatePaymentIntent(c, int32(userID), int32(eventID))
 	if err != nil {
 		newError := err.(*model.Error)
 		c.JSON(newError.ErrCode, newError)
