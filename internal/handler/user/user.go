@@ -4,6 +4,7 @@ import (
 	"event_ticket/internal/handler"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -65,4 +66,26 @@ func (u *user) LoginUser(c *gin.Context) {
 	c.JSON(http.StatusOK, struct {
 		Token string `json:"token"`
 	}{Token: token})
+}
+
+func (u *user) RefreshToken(c *gin.Context) {
+
+	username := c.Value("username").(string)
+	if username == "" {
+		newError := model.Error{
+			ErrCode:   http.StatusBadRequest,
+			Message:   "username not set to context",
+			RootError: fmt.Errorf("username not set to context"),
+		}
+		c.JSON(newError.ErrCode, newError)
+		return
+	}
+	token, err := u.user.RefreshToken(c, username)
+	if err != nil {
+		newError := err.(*model.Error)
+		c.JSON(newError.ErrCode, newError.Message)
+		return
+	}
+	c.Header("Authorization", token)
+	c.JSON(http.StatusOK, nil)
 }

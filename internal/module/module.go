@@ -23,6 +23,7 @@ import (
 type User interface {
 	CreateUser(ctx context.Context, usr model.CreateUserRequest) (model.User, error)
 	LoginUser(ctx context.Context, logReq model.LoginRequest) (string, error)
+	RefreshToken(ctx context.Context, username string) (string, error)
 }
 type Event interface {
 	PostEvent(ctx context.Context, postEvent model.Event) (model.Event, error)
