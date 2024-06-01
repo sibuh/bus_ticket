@@ -35,7 +35,7 @@ func Initiate() {
 	queries := InitDB(viper.GetString("dbConn"))
 	logger.Info("intiating storage layer")
 	storage := NewStorage(user.Init(logger, queries), event.Init(&logger, queries))
-	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration")*time.Second)
+	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), time.Duration(viper.GetInt("token.duration")))
 	mware := middleware.NewMiddleware(logger, maker, storage.user)
 	module := NewModule(
 		muser.Init(

@@ -63,15 +63,17 @@ func (u *user) LoginUser(c *gin.Context) {
 		c.JSON(newErr.ErrCode, newErr)
 		return
 	}
-	c.JSON(http.StatusOK, struct {
-		Token string `json:"token"`
-	}{Token: token})
+	c.Header("Authorization", token)
+	// c.JSON(http.StatusOK, nil)
+	// c.JSON(http.StatusOK, struct {
+	// 	Token string `json:"token"`
+	// }{Token: token})
 }
 
 func (u *user) RefreshToken(c *gin.Context) {
 
-	username := c.Value("username").(string)
-	if username == "" {
+	user := c.Value("user").(model.User)
+	if user.Username == "" {
 		newError := model.Error{
 			ErrCode:   http.StatusBadRequest,
 			Message:   "username not set to context",
@@ -80,7 +82,7 @@ func (u *user) RefreshToken(c *gin.Context) {
 		c.JSON(newError.ErrCode, newError)
 		return
 	}
-	token, err := u.user.RefreshToken(c, username)
+	token, err := u.user.RefreshToken(c, user.Username)
 	if err != nil {
 		newError := err.(*model.Error)
 		c.JSON(newError.ErrCode, newError.Message)
