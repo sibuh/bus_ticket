@@ -34,8 +34,8 @@ func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e han
 			Mwares:  []gin.HandlerFunc{md.Authenticate()},
 		},
 		{
-			Method:  http.MethodPost,
-			Path:    "/cpi",
+			Method:  http.MethodGet,
+			Path:    "/cpi/:id",
 			Handler: p.HandleCreatePaymentIntent,
 			Mwares:  []gin.HandlerFunc{md.Authenticate()},
 		},

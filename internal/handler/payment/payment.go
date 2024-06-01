@@ -37,8 +37,8 @@ func (p *payment) HandleCreatePaymentIntent(c *gin.Context) {
 
 	stripe.Key = p.secretKey
 	eventID, _ := strconv.ParseInt(c.Params.ByName("id"), 10, 32)
-	userID := c.Value("id").(int)
-	clientSecret, err := p.pm.CreatePaymentIntent(c, int32(userID), int32(eventID))
+	user := c.Value("user").(model.User)
+	clientSecret, err := p.pm.CreatePaymentIntent(c, int32(user.ID), int32(eventID))
 	if err != nil {
 		newError := err.(*model.Error)
 		c.JSON(newError.ErrCode, newError)
