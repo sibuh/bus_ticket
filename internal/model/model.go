@@ -143,3 +143,20 @@ type Event struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 	DeletedAt   time.Time `json:"deleted_at"`
 }
+
+type CreateIntentParam struct {
+	UserID   int32  `json:"user_id"`
+	EventID  int32  `json:"event_id"`
+	IntentID string `json:"intent_id"`
+}
+
+type Payment struct {
+	ID            int32     `json:"id"`
+	UserID        int32     `json:"user_id"`
+	EventID       int32     `json:"event_id"`
+	PaymentStatus string    `json:"payment_status"`
+	IntentID      string    `json:"intent_id"`
+	CheckInStatus string    `json:"check_in_status"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}

@@ -15,3 +15,7 @@ type Event interface {
 	FetchEvents(ctx context.Context) ([]model.Event, error)
 	FetchEvent(ctx context.Context, id int32) (model.Event, error)
 }
+
+type Payment interface {
+	RecordPaymentIntent(ctx context.Context, param model.CreateIntentParam) (model.Payment, error)
+}
