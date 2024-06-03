@@ -64,10 +64,6 @@ func (u *user) LoginUser(c *gin.Context) {
 		return
 	}
 	c.Header("Authorization", token)
-	// c.JSON(http.StatusOK, nil)
-	// c.JSON(http.StatusOK, struct {
-	// 	Token string `json:"token"`
-	// }{Token: token})
 }
 
 func (u *user) RefreshToken(c *gin.Context) {
