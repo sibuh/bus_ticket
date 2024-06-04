@@ -1,35 +1,31 @@
 package ticket
 
-// import (
-// 	"event_ticket/internal/handler"
-// 	"event_ticket/internal/model"
-// 	"event_ticket/internal/module"
-// 	"fmt"
-// 	"net/http"
-// 	"os"
-// 	"sync"
+import (
+	"event_ticket/internal/handler"
+	"event_ticket/internal/model"
+	"event_ticket/internal/module"
+	"fmt"
+	"net/http"
+	"os"
 
-// 	"github.com/gin-gonic/gin"
-// 	"golang.org/x/exp/slog"
-// )
+	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slog"
+)
 
-// type ticket struct {
-// 	log      slog.Logger
-// 	errorUrl string
-// 	module   module.Ticket
-// 	sms      module.Sms
-// 	email    module.Email
-// }
+type ticket struct {
+	log     slog.Logger
+	payment module.Payment
+	tkt     module.Ticket
+}
 
-// func Init(log slog.Logger, url string, module module.Ticket, sms module.Sms, email module.Email) handler.Ticket {
-// 	return &ticket{
-// 		log:      log,
-// 		errorUrl: url,
-// 		module:   module,
-// 		sms:      sms,
-// 		email:    email,
-// 	}
-// }
+func Init(log slog.Logger, pmt module.Payment, tkt module.Ticket) handler.Ticket {
+	return &ticket{
+		log:     log,
+		payment: pmt,
+		tkt:     tkt,
+	}
+}
+
 // func (t *ticket) Buy(c *gin.Context) {
 // 	var user model.User
 // 	if err := c.ShouldBind(&user); err != nil {
@@ -97,79 +93,56 @@ package ticket
 // 	c.Writer.WriteHeader(http.StatusOK)
 // }
 
-// func (t *ticket) Error(c *gin.Context) {
-// 	c.HTML(http.StatusInternalServerError, "error.html", "Your request failed!Please try again")
+func (t *ticket) GetTicket(c *gin.Context) {
+	intentID := c.Param("intent_id")
+	pmt, err := t.payment.GetPayment(c, intentID)
+	if err != nil {
+		newErr := err.(*model.Error)
+		c.JSON(newErr.ErrCode, newErr)
+		return
+	}
+	pdf, err := t.tkt.GeneratePDFTicket(pmt)
+	if err != nil {
+		newError := err.(*model.Error)
+		t.log.Error("failed to generate pdf by the given nonce", newError)
+		c.JSON(newError.ErrCode, newError)
+		return
+	}
 
-// }
+	ticketPath := fmt.Sprintf("./public/pdfs/ticket_%s.pdf", pmt.IntentID)
+	_, err = os.Create(ticketPath)
+	if err != nil {
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "unable to create file to store ticket",
+			RootError: err,
+		}
+		t.log.Error("failed to create pdf file", newError)
+		c.JSON(newError.ErrCode, err)
+		return
+	}
 
-// func (t *ticket) Success(c *gin.Context) {
+	err = pdf.WritePdf(ticketPath)
+	if err != nil {
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to write pdf file to response body",
+			RootError: err,
+		}
+		t.log.Error("failed to write pdf file", newError)
+		c.JSON(newError.ErrCode, err)
+		return
+	}
 
-// 	c.HTML(http.StatusOK, "success.html", nil)
-// }
+	c.File(ticketPath)
 
-// func (t *ticket) GetTicket(c *gin.Context) {
-// 	nonce := c.Param("nonce")
-// 	user, err := t.module.GetUser(nonce)
-// 	if err != nil {
-// 		t.log.Error("failed to get user by nonce", err)
-// 		c.HTML(http.StatusInternalServerError, "error.err", err)
-// 		return
-// 	}
-// 	if user.PaymentStatus == "pending" {
-// 		user, err := t.module.UpdatePaymentStatus("SUCCESS", user.SessionID)
-// 		if err != nil {
-// 			t.log.Error("failed to updated payment status", err)
-// 			return
-// 		}
-// 		pdf, err := t.module.GeneratePDFTicket(user)
-// 		if err != nil {
-// 			t.log.Error("Error generating PDF ticket:", err)
-// 			return
-// 		}
-// 		attachmentPath := fmt.Sprintf("./public/pdfs/attachment_%s.pdf", user.ID)
-// 		_, err = os.Create(attachmentPath)
-// 		if err != nil {
-// 			t.log.Error("error when creating attachment file for email")
-// 			return
-// 		}
-
-// 		if err := pdf.WritePdf(attachmentPath); err != nil {
-// 			t.log.Error("error when copying pdf to email attachment file", err)
-// 			return
-// 		}
-// 		wg := &sync.WaitGroup{}
-// 		wg.Add(2)
-// 		go t.sms.SendSms(user, wg)
-// 		go t.email.SendEmail(user, attachmentPath, wg)
-// 	}
-// 	pdf, err := t.module.GeneratePDFTicket(user)
-// 	if err != nil {
-// 		t.log.Error("failed to generate pdf by the given nonce", err)
-// 		c.HTML(http.StatusInternalServerError, "error.html", err)
-// 		return
-// 	}
-
-// 	ticketPath := fmt.Sprintf("./public/pdfs/ticket_%s.pdf", user.SessionID)
-// 	_, err = os.Create(ticketPath)
-// 	if err != nil {
-// 		t.log.Error("failed to create pdf file", err)
-// 		c.HTML(http.StatusInternalServerError, "error.html", err)
-// 		return
-// 	}
-
-// 	err = pdf.WritePdf(ticketPath)
-// 	if err != nil {
-// 		t.log.Error("failed to write pdf file", err)
-// 		c.HTML(http.StatusInternalServerError, "error.html", err)
-// 		return
-// 	}
-
-// 	c.File(ticketPath)
-
-// 	if err := os.RemoveAll(ticketPath); err != nil {
-// 		t.log.Error("failed to remove pdf file", err)
-// 		c.HTML(http.StatusInternalServerError, "error.html", err)
-// 		return
-// 	}
-
-// }
+	if err := os.RemoveAll(ticketPath); err != nil {
+		newError := model.Error{
+			ErrCode: http.StatusInternalServerError,
+			Message: "failed to remove pdf file after written to body",
+		}
+		t.log.Error("failed to remove pdf file", newError)
+		c.JSON(newError.ErrCode, err)
+		return
+	}
+}
