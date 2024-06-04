@@ -7,11 +7,13 @@ import (
 type Storage struct {
 	user  storage.User
 	event storage.Event
+	pmt   storage.Payment
 }
 
-func NewStorage(user storage.User, event storage.Event) *Storage {
+func NewStorage(user storage.User, event storage.Event, pmt storage.Payment) *Storage {
 	return &Storage{
 		user:  user,
 		event: event,
+		pmt:   pmt,
 	}
 }
