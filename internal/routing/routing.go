@@ -12,8 +12,9 @@ type Route struct {
 func RegisterRoutes(group *gin.RouterGroup, routes []Route) {
 	for _, r := range routes {
 		handlers := []gin.HandlerFunc{}
-
-		handlers = append(handlers, r.Mwares...)
+		if len(r.Mwares) > 0 {
+			handlers = append(handlers, r.Mwares...)
+		}
 		handlers = append(handlers, r.Handler)
 		group.Handle(r.Method, r.Path, handlers...)
 	}
