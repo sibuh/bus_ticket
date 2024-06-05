@@ -2,9 +2,12 @@ package user
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 	"event_ticket/internal/storage"
+	"net/http"
 
 	"golang.org/x/exp/slog"
 )
@@ -50,8 +53,23 @@ func (t *user) CreateUser(ctx context.Context, usr model.CreateUserRequest) (mod
 func (t *user) GetUser(ctx context.Context, username string) (model.User, error) {
 	user, err := t.queries.GetUser(ctx, username)
 	if err != nil {
-		t.log.Error("failed to get user with the given id", err)
-		return model.User{}, err
+		if errors.Is(sql.ErrNoRows, err) {
+			newError := model.Error{
+				ErrCode:   http.StatusNotFound,
+				Message:   "failed to get user with given username",
+				RootError: err,
+			}
+			t.log.Info("failed to get user with the given username", newError)
+			return model.User{}, &newError
+		}
+
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "unable to get user with the given username",
+			RootError: err,
+		}
+		t.log.Info("failed to get user with the given username", newError)
+		return model.User{}, &newError
 	}
 	return model.User{
 		ID:        user.ID,
