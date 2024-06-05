@@ -3,6 +3,10 @@ package initiator
 import (
 	"context"
 	"event_ticket/internal/handler/payment"
+	"event_ticket/internal/handler/ticket"
+	mtkt "event_ticket/internal/module/ticket"
+	spmt "event_ticket/internal/storage/payment"
+
 	huser "event_ticket/internal/handler/user"
 	"event_ticket/internal/middleware"
 	mpayment "event_ticket/internal/module/payment"
@@ -34,8 +38,8 @@ func Initiate() {
 	logger.Info("initiate database")
 	queries := InitDB(viper.GetString("dbConn"))
 	logger.Info("intiating storage layer")
-	storage := NewStorage(user.Init(logger, queries), event.Init(&logger, queries))
-	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), time.Duration(viper.GetInt("token.duration")))
+	storage := NewStorage(user.Init(logger, queries), event.Init(&logger, queries), spmt.Init(logger, queries))
+	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration"))
 	mware := middleware.NewMiddleware(logger, maker, storage.user)
 	module := NewModule(
 		muser.Init(
@@ -45,6 +49,7 @@ func Initiate() {
 		),
 		storage.event,
 		mpayment.Init(&logger, storage.event),
+		mtkt.Init(logger, storage.pmt),
 	)
 
 	handler := InitHandler(
@@ -54,8 +59,9 @@ func Initiate() {
 			viper.GetString("payment.secret_key"),
 			logger, module.payment),
 		hevnt.Init(&logger, module.event),
+		ticket.Init(logger, module.payment, module.ticket),
 	)
-	routing.InitRouter(v1, handler.user, handler.payment, handler.event, mware)
+	routing.InitRouter(v1, handler.user, handler.payment, handler.event, handler.ticket, mware)
 	srv := &http.Server{
 		Addr:        fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port")),
 		ReadTimeout: viper.GetDuration("server.read_time_out") * time.Second,

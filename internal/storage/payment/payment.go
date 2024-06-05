@@ -2,9 +2,12 @@ package payment
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 	"event_ticket/internal/storage"
+	"fmt"
 	"net/http"
 
 	"golang.org/x/exp/slog"
@@ -40,4 +43,28 @@ func (p *payment) RecordPaymentIntent(ctx context.Context, param model.CreateInt
 		return model.Payment{}, &newError
 	}
 	return model.Payment(payment), nil
+}
+
+func (p *payment) GetPayment(ctx context.Context, intentID string) (model.Payment, error) {
+	pmt, err := p.db.GetPayment(ctx, intentID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			newError := model.Error{
+				ErrCode:   http.StatusNotFound,
+				Message:   fmt.Sprintf("no payment data found for IntentID %s", intentID),
+				RootError: err,
+			}
+			p.logger.Info(fmt.Sprintf("no payment data found for IntentID %s", intentID))
+			return model.Payment{}, &newError
+		}
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to get payment information",
+			RootError: err,
+		}
+		p.logger.Error("failed to get payment information")
+		return model.Payment{}, &newError
+
+	}
+	return model.Payment(pmt), nil
 }

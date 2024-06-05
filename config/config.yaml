@@ -18,4 +18,4 @@ payment:
 
 token: 
   key: "01234567890123456789012345678901"
-  duration: 60
+  duration: 60s

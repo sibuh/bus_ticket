@@ -6,7 +6,6 @@ import (
 	"event_ticket/internal/utils/token/paseto"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -50,31 +49,31 @@ func (m *Middleware) Authenticate() gin.HandlerFunc {
 		auth := ctx.GetHeader("Authorization")
 		if auth == "" {
 			m.logger.Info("authorization header is empty")
-			ctx.AbortWithStatus(204)
+			ctx.AbortWithStatus(401)
 			return
 		}
 		authSlice := strings.Split(auth, " ")
 		if authSlice[0] != authType {
 			m.logger.Info(fmt.Sprintf("invalide authorization type want:%s got:%s", authType, authSlice[0]))
-			ctx.AbortWithStatus(204)
+			ctx.AbortWithStatus(401)
 			return
 		}
-		tokenMaker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration")*time.Second)
+		tokenMaker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration"))
 		payload, err := tokenMaker.VerifyToken(authSlice[1])
 		if err != nil {
 			m.logger.Info("failed to verify token", err)
-			ctx.AbortWithStatus(204)
+			ctx.AbortWithStatus(401)
 			return
 		}
 		if !payload.Valid() {
 			m.logger.Info("token is not valid please refresh token")
-			ctx.AbortWithStatus(204)
+			ctx.AbortWithStatus(401)
 			return
 		}
 		usr, err := m.us.GetUser(ctx, payload.Username)
 		if err != nil {
 			m.logger.Info("user does not exist", err)
-			ctx.AbortWithStatus(204)
+			ctx.AbortWithStatus(401)
 			return
 		}
 

@@ -9,6 +9,26 @@ import (
 	"context"
 )
 
+const getPayment = `-- name: GetPayment :one
+SELECT id, user_id, event_id, payment_status, intent_id, check_in_status, created_at, updated_at FROM payments WHERE intent_id=$1
+`
+
+func (q *Queries) GetPayment(ctx context.Context, intentID string) (Payment, error) {
+	row := q.db.QueryRow(ctx, getPayment, intentID)
+	var i Payment
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.EventID,
+		&i.PaymentStatus,
+		&i.IntentID,
+		&i.CheckInStatus,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const recordPayment = `-- name: RecordPayment :one
 INSERT INTO payments (user_id,event_id,payment_status,intent_id,check_in_status) VALUES($1,$2,$3,$4,$5) RETURNING id, user_id, event_id, payment_status, intent_id, check_in_status, created_at, updated_at
 `

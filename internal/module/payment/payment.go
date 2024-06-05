@@ -15,6 +15,7 @@ import (
 type payment struct {
 	logger *slog.Logger
 	es     storage.Event
+	ps     storage.Payment
 }
 
 func Init(logger *slog.Logger, es storage.Event) module.Payment {
@@ -49,4 +50,8 @@ func (p *payment) CreatePaymentIntent(ctx context.Context, userID, eventID int32
 	}
 	//TODO register the user session into payment database
 	return pi.ClientSecret, nil
+}
+
+func (p *payment) GetPayment(ctx context.Context, intentID string) (model.Payment, error) {
+	return p.ps.GetPayment(ctx, intentID)
 }

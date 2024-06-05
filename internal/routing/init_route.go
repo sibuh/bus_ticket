@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e handler.Event, md middleware.Middleware) {
+func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e handler.Event, t handler.Ticket, md middleware.Middleware) {
 	routes := []Route{
 		{
 			Method:  http.MethodPost,
@@ -48,6 +48,12 @@ func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e han
 		{
 			Method:  http.MethodGet,
 			Path:    "/events",
+			Handler: e.FetchEvents,
+			Mwares:  []gin.HandlerFunc{md.Authenticate()},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/ticket/:intent_id",
 			Handler: e.FetchEvents,
 			Mwares:  []gin.HandlerFunc{md.Authenticate()},
 		},
