@@ -10,7 +10,7 @@ import (
 type Ticket interface {
 	// CreateCheckoutSession(c *gin.Context, user model.User) error
 	// UpdatePaymentStatus(status, sid string) (db.User, error)
-	GeneratePDFTicket(pmt model.Payment) (*gopdf.GoPdf, error)
+	GeneratePDFTicket(intentID string) (*gopdf.GoPdf, error)
 }
 
 // type Sms interface {

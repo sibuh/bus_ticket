@@ -6,7 +6,6 @@ import (
 	"event_ticket/internal/utils/token/paseto"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -59,7 +58,7 @@ func (m *Middleware) Authenticate() gin.HandlerFunc {
 			ctx.AbortWithStatus(401)
 			return
 		}
-		tokenMaker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration")*time.Second)
+		tokenMaker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration"))
 		payload, err := tokenMaker.VerifyToken(authSlice[1])
 		if err != nil {
 			m.logger.Info("failed to verify token", err)

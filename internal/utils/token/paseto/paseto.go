@@ -31,7 +31,7 @@ func NewPasetoMaker(key string, duration time.Duration) token.TokenMaker {
 }
 
 func (p *pasetoMaker) CreateToken(username string) (string, error) {
-	payload := token.NewPayload(username, p.duration*3*time.Second)
+	payload := token.NewPayload(username, p.duration)
 	tokenString, err := p.paseto.Encrypt(p.signingKey, payload, nil)
 	if err != nil {
 		newErr := model.Error{

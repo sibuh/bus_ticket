@@ -1,7 +1,6 @@
 package ticket
 
 import (
-	"event_ticket/internal/model"
 	"event_ticket/internal/module"
 	"event_ticket/internal/storage"
 	"fmt"
@@ -112,7 +111,7 @@ func Init(log slog.Logger, ps storage.Payment) module.Ticket {
 // }
 
 // GeneratePDFTicket generates a PDF ticket with user information and a QR code
-func (t *ticket) GeneratePDFTicket(pmt model.Payment) (*gopdf.GoPdf, error) {
+func (t *ticket) GeneratePDFTicket(intentID string) (*gopdf.GoPdf, error) {
 	// Create PDF
 	pdf := gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{PageSize: gopdf.Rect{W: 396, H: 150}})
@@ -126,8 +125,8 @@ func (t *ticket) GeneratePDFTicket(pmt model.Payment) (*gopdf.GoPdf, error) {
 	}
 	pdf.SetFont("Arial", "", 8)
 	// Draw QR code
-	qrFileName := fmt.Sprintf("./public/image/qr_%d.png", pmt.ID) // Use unique ID as file name
-	qrURL := fmt.Sprintf("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s", pmt.IntentID)
+	qrFileName := fmt.Sprintf("./public/image/qr_%s.png", intentID) // Use unique ID as file name
+	qrURL := fmt.Sprintf("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s", intentID)
 	qrImage, err := http.Get(qrURL)
 	if err != nil {
 		return nil, err
@@ -169,7 +168,7 @@ func (t *ticket) GeneratePDFTicket(pmt model.Payment) (*gopdf.GoPdf, error) {
 
 	pdf.Br(8)
 	pdf.SetX(310)
-	pdf.Cell(&gopdf.Rect{W: 5, H: 5}, fmt.Sprintf("TicketNo: %d", pmt.ID))
+	// pdf.Cell(&gopdf.Rect{W: 5, H: 5}, fmt.Sprintf("TicketNo: %d", pmt.ID))
 	if err != nil {
 		return nil, err
 	}

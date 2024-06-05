@@ -95,13 +95,13 @@ func Init(log slog.Logger, pmt module.Payment, tkt module.Ticket) handler.Ticket
 
 func (t *ticket) GetTicket(c *gin.Context) {
 	intentID := c.Param("intent_id")
-	pmt, err := t.payment.GetPayment(c, intentID)
-	if err != nil {
-		newErr := err.(*model.Error)
-		c.JSON(newErr.ErrCode, newErr)
-		return
-	}
-	pdf, err := t.tkt.GeneratePDFTicket(pmt)
+	// pmt, err := t.payment.GetPayment(c, intentID)
+	// if err != nil {
+	// 	newErr := err.(*model.Error)
+	// 	c.JSON(newErr.ErrCode, newErr)
+	// 	return
+	// }
+	pdf, err := t.tkt.GeneratePDFTicket(intentID)
 	if err != nil {
 		newError := err.(*model.Error)
 		t.log.Error("failed to generate pdf by the given nonce", newError)
@@ -109,7 +109,7 @@ func (t *ticket) GetTicket(c *gin.Context) {
 		return
 	}
 
-	ticketPath := fmt.Sprintf("./public/pdfs/ticket_%s.pdf", pmt.IntentID)
+	ticketPath := fmt.Sprintf("./public/pdfs/ticket_%s.pdf", intentID)
 	_, err = os.Create(ticketPath)
 	if err != nil {
 		newError := model.Error{
