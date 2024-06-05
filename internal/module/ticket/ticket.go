@@ -1,6 +1,7 @@
 package ticket
 
 import (
+	"event_ticket/internal/model"
 	"event_ticket/internal/module"
 	"event_ticket/internal/storage"
 	"fmt"
@@ -120,38 +121,61 @@ func (t *ticket) GeneratePDFTicket(intentID string) (*gopdf.GoPdf, error) {
 	pdf.SetFillColor(0, 0, 0)
 
 	// Set font
-	if err := pdf.AddTTFFont("Arial", "./public/font/arial.ttf"); err != nil {
-		return nil, err
-	}
-	pdf.SetFont("Arial", "", 8)
+	// if err := pdf.AddTTFFont("Arial", "./public/font/arial.ttf"); err != nil {
+	// 	return nil, err
+	// }
+	// pdf.SetFont("Arial", "", 8)
 	// Draw QR code
 	qrFileName := fmt.Sprintf("./public/image/qr_%s.png", intentID) // Use unique ID as file name
 	qrURL := fmt.Sprintf("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s", intentID)
 	qrImage, err := http.Get(qrURL)
 	if err != nil {
-		return nil, err
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to create qr image",
+			RootError: err,
+		}
+		t.log.Error(newError.Message, newError)
+		return nil, &newError
 	}
 	defer qrImage.Body.Close()
 
 	// Create a file to store the QR code image
 	qrFile, err := os.Create(qrFileName)
 	if err != nil {
-		return nil, err
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to create file for qr generated",
+			RootError: err,
+		}
+		t.log.Error(newError.Error(), newError)
+		return nil, &newError
 	}
 	defer qrFile.Close()
 
 	// Write the QR code image to the file
 	_, err = io.Copy(qrFile, qrImage.Body)
 	if err != nil {
-		return nil, err
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to write qr code file to",
+			RootError: err,
+		}
+		t.log.Error(newError.Error(), newError)
+		return nil, &newError
 	}
 	err = pdf.Image("./public/image/ticket.png", 0, 0, &gopdf.Rect{
 		H: 150,
 		W: 390,
 	})
 	if err != nil {
-		t.log.Debug("failed to read png")
-		return nil, err
+		newError := model.Error{
+			ErrCode:   http.StatusNonAuthoritativeInfo,
+			Message:   "failed to add image into ticket pdf",
+			RootError: err,
+		}
+		t.log.Error(newError.Error(), newError)
+		return nil, &newError
 	}
 	// Embed the QR code image into the PDF
 	err = pdf.Image(qrFileName, 310, 0, &gopdf.Rect{
@@ -170,10 +194,16 @@ func (t *ticket) GeneratePDFTicket(intentID string) (*gopdf.GoPdf, error) {
 	pdf.SetX(310)
 	// pdf.Cell(&gopdf.Rect{W: 5, H: 5}, fmt.Sprintf("TicketNo: %d", pmt.ID))
 	if err != nil {
-		return nil, err
+		newError := model.Error{
+			ErrCode:   http.StatusNonAuthoritativeInfo,
+			Message:   "failed to add image into ticket pdf",
+			RootError: err,
+		}
+		t.log.Error(newError.Error(), newError)
+		return nil, &newError
 	}
-	if err := os.RemoveAll(qrFileName); err != nil {
-		return nil, err
-	}
+	// if err := os.RemoveAll(qrFileName); err != nil {
+	// 	return nil, err
+	// }
 	return &pdf, nil
 }

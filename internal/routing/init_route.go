@@ -59,7 +59,7 @@ func InitRouter(group *gin.RouterGroup, u handler.User, p handler.Payment, e han
 		{
 			Method:  http.MethodGet,
 			Path:    "/ticket/:intent_id",
-			Handler: e.FetchEvents,
+			Handler: t.GetTicket,
 			Mwares:  []gin.HandlerFunc{md.Authenticate()},
 		},
 	}
