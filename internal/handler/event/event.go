@@ -5,6 +5,7 @@ import (
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
@@ -53,4 +54,26 @@ func (e *event) FetchEvents(c *gin.Context) {
 	}
 	//TODO: pagination for FetchEvents
 	c.JSON(http.StatusOK, events)
+}
+
+func (e *event) FetchEvent(c *gin.Context) {
+	eventID := c.Params.ByName("id")
+	eventIDInt, err := strconv.Atoi(eventID)
+	if err != nil {
+		newError := model.Error{
+			ErrCode:   http.StatusBadRequest,
+			Message:   "failed to parse eventID from path parameter",
+			RootError: err,
+		}
+		e.logger.Info(newError.Message, newError)
+		c.JSON(newError.ErrCode, newError)
+		return
+	}
+	ev, err := e.em.FetchEvent(c, int32(eventIDInt))
+	if err != nil {
+		newError := err.(*model.Error)
+		c.JSON(newError.ErrCode, newError)
+		return
+	}
+	c.JSON(http.StatusOK, ev)
 }
