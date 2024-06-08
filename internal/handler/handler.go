@@ -23,4 +23,5 @@ type User interface {
 type Event interface {
 	PostEvent(c *gin.Context)
 	FetchEvents(c *gin.Context)
+	FetchEvent(c *gin.Context)
 }
