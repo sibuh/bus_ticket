@@ -6,6 +6,7 @@ import (
 	"event_ticket/internal/handler/ticket"
 	mtkt "event_ticket/internal/module/ticket"
 	spmt "event_ticket/internal/storage/payment"
+	"log"
 
 	huser "event_ticket/internal/handler/user"
 	"event_ticket/internal/middleware"
@@ -26,6 +27,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lpernett/godotenv"
 	"github.com/spf13/viper"
 )
 
@@ -51,12 +53,15 @@ func Initiate() {
 		mpayment.Init(&logger, storage.event),
 		mtkt.Init(logger, storage.pmt),
 	)
-
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 	handler := InitHandler(
 		huser.Init(logger, module.user),
 		payment.Init(
-			viper.GetString("payment.publishable_key"),
-			viper.GetString("payment.secret_key"),
+			os.Getenv("PUBLISHABLE_KEY"),
+			os.Getenv("SECRET_KEY"),
 			logger, module.payment),
 		hevnt.Init(&logger, module.event),
 		ticket.Init(logger, module.payment, module.ticket),
