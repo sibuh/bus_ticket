@@ -1,14 +1,22 @@
-package ticket_test
+package ticket
 
 import (
-	"event_ticket/internal/module/ticket"
 	"testing"
 
 	"github.com/cucumber/godog"
+	"golang.org/x/exp/slog"
 )
 
+type holdTicket struct {
+}
+
 func TestHoldTicket(t *testing.T) {
-	ticket.HoldTicket()
+	logger := slog.Logger{}
+	tkt := ticket{
+		log: logger,
+	}
+
+	tkt.HoldTicket()
 
 }
 func theTicketStatusShouldBe(arg1 string) error {

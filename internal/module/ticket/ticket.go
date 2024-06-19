@@ -15,4 +15,4 @@ func Init(log slog.Logger) module.Ticket {
 		log: log,
 	}
 }
-func HoldTicket() {}
+func (t *ticket) HoldTicket() {}

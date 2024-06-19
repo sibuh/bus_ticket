@@ -51,7 +51,7 @@ func Initiate() {
 		),
 		storage.event,
 		mpayment.Init(&logger, storage.event),
-		mtkt.Init(logger, storage.pmt),
+		mtkt.Init(logger),
 	)
 	err := godotenv.Load()
 	if err != nil {
