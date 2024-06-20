@@ -1,8 +1,8 @@
 Feature: Ticket Resevation
 
 Scenario: Hold ticket
-    Given ticket number 12 of bus number 10 is "free"
-    When user requests reservation 
+    Given ticket number 12 of bus number 10 for trip of id 778 is "free"
+    When user requests to reserve ticket number 12 of trip 778
     Then the ticket status should be "onhold"
     And the user should get ckeckout url 
 # Scenario: ticket onhold
