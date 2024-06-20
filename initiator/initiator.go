@@ -5,6 +5,8 @@ import (
 	"event_ticket/internal/handler/payment"
 	"event_ticket/internal/handler/ticket"
 	mtkt "event_ticket/internal/module/ticket"
+	stkt "event_ticket/internal/storage/ticket"
+
 	spmt "event_ticket/internal/storage/payment"
 	"log"
 
@@ -51,7 +53,7 @@ func Initiate() {
 		),
 		storage.event,
 		mpayment.Init(&logger, storage.event),
-		mtkt.Init(logger, storage.pmt),
+		mtkt.Init(logger, stkt.Init(logger)),
 	)
 	err := godotenv.Load()
 	if err != nil {

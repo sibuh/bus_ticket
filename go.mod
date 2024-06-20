@@ -13,7 +13,6 @@ require (
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/lpernett/godotenv v0.0.0-20230527005122-0de1d4c5ef5e
 	github.com/o1egl/paseto v1.0.0
-	github.com/signintech/gopdf v0.25.1
 	github.com/spf13/viper v1.18.2
 	github.com/stripe/stripe-go/v78 v78.7.0
 	golang.org/x/crypto v0.23.0
@@ -57,7 +56,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.1 // indirect
-	github.com/phpdave11/gofpdi v1.0.14-0.20211212211723-1f10f9844311 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect

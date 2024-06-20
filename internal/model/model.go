@@ -160,3 +160,9 @@ type Payment struct {
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 }
+type Ticket struct {
+	TripId   int32
+	TicketNo int32
+	BusNo    int32
+	Status   string
+}
