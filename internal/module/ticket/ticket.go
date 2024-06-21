@@ -31,6 +31,7 @@ func Init(log slog.Logger, tkt storage.Ticket, platform platform.PaymentGatewayI
 		platform:      platform,
 	}
 }
+
 func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId int32) (string, error) {
 	tkt, err := t.storageTicket.GetTicket(tktNo, tripId)
 	if err != nil {
@@ -45,7 +46,7 @@ func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId int32) (string
 		return "", &newError
 	}
 
-	if tkt.Status == string(Free) {
+	if tkt.Status == string(Onhold) {
 		newError := model.Error{
 			ErrCode:   http.StatusBadRequest,
 			Message:   "ticket is onhold please try later",
@@ -59,9 +60,22 @@ func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId int32) (string
 	if err != nil {
 		return "", err
 	}
-	url, err := t.platform.CreateCheckoutSession(ctx, tkt)
-	if err != nil {
-		return "", err
+	if tkt.Status != string(Onhold) {
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "ticket is not held successfully",
+			RootError: nil,
+		}
+		return "", &newError
 	}
-	return url, nil
+	checkoutUrl, err := t.platform.CreateCheckoutSession(ctx, tkt)
+	if err != nil {
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to create checkout session",
+			RootError: err,
+		}
+		return "", &newError
+	}
+	return checkoutUrl, nil
 }

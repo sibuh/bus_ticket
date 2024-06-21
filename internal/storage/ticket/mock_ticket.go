@@ -13,7 +13,7 @@ func InitMock(tkt model.Ticket) *MockStorageTicket {
 }
 func (m *MockStorageTicket) ReserveTicket(ticketNo, tripId int32) (model.Ticket, error) {
 
-	m.Tkt.Status = "onhold"
+	m.Tkt.Status = "Onhold"
 	return m.Tkt, nil
 
 }
@@ -25,13 +25,6 @@ func (m *MockStorageTicket) AddTicket(ticketNo, busNo, tripId int32, status stri
 		Status:   status,
 	}
 	return m.Tkt, nil
-}
-
-func (m *MockStorageTicket) CheckTicketStatus(tktNo int32) string {
-	if tktNo == m.Tkt.TicketNo {
-		return m.Tkt.Status
-	}
-	return ""
 }
 func (m *MockStorageTicket) GetTicket(tktNo, tripId int32) (model.Ticket, error) {
 	return m.Tkt, nil
