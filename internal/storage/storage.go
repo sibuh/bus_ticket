@@ -22,5 +22,6 @@ type Payment interface {
 }
 
 type Ticket interface {
-	HoldTicket(ticketNo, tripId int32) (model.Ticket, error)
+	ReserveTicket(ticketNo, tripId int32) (model.Ticket, error)
+	GetTicket(tktNo, tripId int32) (model.Ticket, error)
 }
