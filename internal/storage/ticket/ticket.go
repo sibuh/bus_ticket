@@ -16,6 +16,9 @@ func Init(logger slog.Logger) storage.Ticket {
 		logger: logger,
 	}
 }
-func (t *ticket) HoldTicket(ticketNo, tripId int32) (model.Ticket, error) {
+func (t *ticket) ReserveTicket(ticketNo, tripId int32) (model.Ticket, error) {
+	return model.Ticket{}, nil
+}
+func (t *ticket) GetTicket(tktNo, tripId int32) (model.Ticket, error) {
 	return model.Ticket{}, nil
 }
