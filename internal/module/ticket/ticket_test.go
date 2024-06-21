@@ -1,8 +1,10 @@
 package ticket
 
 import (
+	"context"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
+	paymentintegration "event_ticket/internal/platform/payment_integration"
 	storageTkt "event_ticket/internal/storage/ticket"
 	"fmt"
 
@@ -15,13 +17,15 @@ import (
 type holdTicketTest struct {
 	tkt         module.Ticket
 	mockstorage *storageTkt.MockStorageTicket
+	url         string
 }
 
 func TestHoldTicket(t *testing.T) {
 	logger := slog.Logger{}
 	store := storageTkt.InitMock(model.Ticket{})
+	platform := paymentintegration.InitMock(logger)
 	holdTkt := holdTicketTest{
-		tkt:         Init(logger, store),
+		tkt:         Init(logger, store, platform),
 		mockstorage: store,
 	}
 	result := godog.TestSuite{
@@ -47,6 +51,9 @@ func (h *holdTicketTest) theTicketStatusShouldBe(status string) error {
 }
 
 func (h *holdTicketTest) theUserShouldGetCkeckoutUrl() error {
+	if h.url == "" {
+		return fmt.Errorf("checkout url not returned")
+	}
 	return nil
 }
 
@@ -62,12 +69,11 @@ func (h *holdTicketTest) ticketNumberOfBusNumberForTripOfIdIs(tktNo, busNo, trip
 
 func (h *holdTicketTest) userRequestsToReserveTicketNumberOfTrip(tktNo, tripId int) error {
 
-	tkt, err := h.tkt.HoldTicket(int32(tktNo), int32(tripId))
+	url, err := h.tkt.HoldTicket(context.Background(), int32(tktNo), int32(tripId))
 	if err != nil {
 		return err
 	}
-	fmt.Println("tkt:--->", tkt)
-
+	h.url = url
 	return nil
 }
 
