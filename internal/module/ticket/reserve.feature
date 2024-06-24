@@ -13,6 +13,7 @@ Scenario: user tries to reserve already reserved ticket
     Given ticket number 12 of bus number 10 for trip of id 778 is "Reserved"
     When user requests to reserve ticket number 12 of trip 778
     Then user should get error message "ticket is already reserved please try to reserve free ticket"
-Scenario: held ticket released to free incase payment delays
+Scenario: held ticket released to free 
     Given ticket number 12 of bus number 10 for trip of id 778 is "Onhold"
-    When 
+    When ticket reservstion do not succeed with in 10s duration
+    Then ticket must be set "Free" for sale
