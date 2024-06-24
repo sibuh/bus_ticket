@@ -2,6 +2,7 @@ package ticket
 
 import (
 	"event_ticket/internal/model"
+	"fmt"
 )
 
 type MockStorageTicket struct {
@@ -28,4 +29,11 @@ func (m *MockStorageTicket) AddTicket(ticketNo, busNo, tripId int32, status stri
 }
 func (m *MockStorageTicket) GetTicket(tktNo, tripId int32) (model.Ticket, error) {
 	return m.Tkt, nil
+}
+func (m *MockStorageTicket) UnholdTicket(tktNo, tripId int32) (model.Ticket, error) {
+	if m.Tkt.Status == "Onhold" {
+		m.Tkt.Status = "Free"
+		return m.Tkt, nil
+	}
+	return model.Ticket{}, fmt.Errorf("failed to unhold ticket")
 }

@@ -7,6 +7,7 @@ import (
 	paymentintegration "event_ticket/internal/platform/payment_integration"
 	storageTkt "event_ticket/internal/storage/ticket"
 	"fmt"
+	"time"
 
 	"testing"
 
@@ -42,6 +43,16 @@ func TestReserveTicket(t *testing.T) {
 		t.Errorf("test failed")
 	}
 
+}
+func (r *reserveTicketTest) ticketMustBeSetForSale(status string) error {
+	if r.mockstorage.Tkt.Status != status {
+		return fmt.Errorf("ticket status is not set free")
+	}
+	return nil
+}
+func (r *reserveTicketTest) ticketReservstionDoNotSucceedWithInSDuration(delay int) error {
+	time.Sleep(10 * time.Second)
+	return nil
 }
 func (r *reserveTicketTest) userShouldGetErrorMessage(errMsg string) error {
 	if r.err.Error() != errMsg {
@@ -86,4 +97,6 @@ func (r *reserveTicketTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the user should get checkout url$`, r.theUserShouldGetCheckoutUrl)
 	ctx.Step(`^ticket number (\d+) of bus number (\d+) for trip of id (\d+) is "([^"]*)"$`, r.ticketNumberOfBusNumberForTripOfIdIs)
 	ctx.Step(`^user requests to reserve ticket number (\d+) of trip (\d+)$`, r.userRequestsToReserveTicketNumberOfTrip)
+	ctx.Step(`^ticket must be set "([^"]*)" for sale$`, r.ticketMustBeSetForSale)
+	ctx.Step(`^ticket reservstion do not succeed with in (\d+)s duration$`, r.ticketReservstionDoNotSucceedWithInSDuration)
 }

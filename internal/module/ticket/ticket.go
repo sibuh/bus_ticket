@@ -7,6 +7,7 @@ import (
 	"event_ticket/internal/platform"
 	"event_ticket/internal/storage"
 	"net/http"
+	"time"
 
 	"golang.org/x/exp/slog"
 )
@@ -77,5 +78,14 @@ func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId int32) (string
 		}
 		return "", &newError
 	}
+	time.AfterFunc(time.Second, func() {
+		func(tktNo, tripId int32, logger slog.Logger) {
+			_, err := t.storageTicket.UnholdTicket(tktNo, tripId)
+			if err != nil {
+				logger.Error("failed to unhold ticket", err)
+			}
+		}(tktNo, tripId, t.log)
+	},
+	)
 	return checkoutUrl, nil
 }
