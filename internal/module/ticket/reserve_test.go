@@ -5,7 +5,6 @@ import (
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
 	paymentintegration "event_ticket/internal/platform/payment_integration"
-	storageTkt "event_ticket/internal/storage/ticket"
 	"fmt"
 	"time"
 
@@ -17,7 +16,7 @@ import (
 
 type reserveTicketTest struct {
 	tkt         module.Ticket
-	mockstorage *storageTkt.MockStorageTicket
+	mockstorage *MockStorageTicket
 	url         string
 	err         error
 }
@@ -48,7 +47,7 @@ func (m *MockStorageTicket) UnholdTicket(tktNo, tripId int32) (model.Ticket, err
 
 func TestReserveTicket(t *testing.T) {
 	logger := slog.Logger{}
-	store := storageTkt.InitMock(model.Ticket{})
+	store := InitMock(model.Ticket{})
 	platform := paymentintegration.InitMock(logger)
 	reserveTkt := reserveTicketTest{
 		tkt:         Init(logger, store, platform),
