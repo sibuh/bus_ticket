@@ -56,7 +56,7 @@ func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId int32) (string
 		return "", &newError
 	}
 
-	tkt, err = t.storageTicket.ReserveTicket(tktNo, tripId)
+	tkt, err = t.storageTicket.HoldTicket(tktNo, tripId)
 
 	if err != nil {
 		return "", err

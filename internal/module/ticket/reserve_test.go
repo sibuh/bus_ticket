@@ -28,7 +28,7 @@ type MockStorageTicket struct {
 func InitMock(tkt model.Ticket) *MockStorageTicket {
 	return &MockStorageTicket{Tkt: tkt}
 }
-func (m *MockStorageTicket) ReserveTicket(ticketNo, tripId int32) (model.Ticket, error) {
+func (m *MockStorageTicket) HoldTicket(ticketNo, tripId int32) (model.Ticket, error) {
 
 	m.Tkt.Status = "Onhold"
 	return m.Tkt, nil
