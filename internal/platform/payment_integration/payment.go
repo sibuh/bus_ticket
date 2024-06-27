@@ -19,3 +19,6 @@ func (p *paymentGateway) CreateCheckoutSession(ctx context.Context, ticketInfo m
 	//TODO:create checkout session
 	return "https://chapa.com/checkout/session-id", nil
 }
+func (p *paymentGateway) CancelCheckoutSession(ctx context.Context, sessionId string) (bool, error) {
+	return true, nil
+}

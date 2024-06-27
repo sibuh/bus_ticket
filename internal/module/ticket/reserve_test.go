@@ -4,7 +4,6 @@ import (
 	"context"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
-	paymentintegration "event_ticket/internal/platform/payment_integration"
 	"fmt"
 	"time"
 
@@ -45,10 +44,25 @@ func (m *MockStorageTicket) UnholdTicket(tktNo, tripId int32) (model.Ticket, err
 	return model.Ticket{}, fmt.Errorf("failed to unhold ticket")
 }
 
+type MockPaymentGateWay struct {
+	logger slog.Logger
+}
+
+func InitMockGateway(logger slog.Logger) *MockPaymentGateWay {
+	return &MockPaymentGateWay{logger: logger}
+}
+
+func (m *MockPaymentGateWay) CreateCheckoutSession(ctx context.Context, ticketInfo model.Ticket) (url string, err error) {
+
+	return "https://chapa.com/checkout/session-id", nil
+}
+func (m *MockPaymentGateWay) CancelCheckoutSession(ctx context.Context, sessionId string) (bool, error) {
+	return true, nil
+}
 func TestReserveTicket(t *testing.T) {
 	logger := slog.Logger{}
 	store := InitMock(model.Ticket{})
-	platform := paymentintegration.InitMock(logger)
+	platform := InitMockGateway(logger)
 	reserveTkt := reserveTicketTest{
 		tkt:         Init(logger, store, platform),
 		mockstorage: store,
