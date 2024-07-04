@@ -129,6 +129,37 @@ func (r *reserveTicketTest) userRequestsToReserveTicketNumberOfTrip(tktNo, tripI
 
 	return nil
 }
+func cancelCheckoutSessionIsSentToPaymentGateway() error {
+	return godog.ErrPending
+}
+
+func checkPaymentStatusOnPaymentGateway() error {
+	return godog.ErrPending
+}
+
+func checkoutSessionIsCreated(arg1 *godog.Table) error {
+	return godog.ErrPending
+}
+
+func paymentCancelationResponseIsSuccessful() error {
+	return godog.ErrPending
+}
+
+func paymentStatusCheckoutSessionReturnsForCheckoutSession(arg1 string) error {
+	return godog.ErrPending
+}
+
+func paymentStatusForCheckoutSessionReturns(arg1 string) error {
+	return godog.ErrPending
+}
+
+func paymentStatusIsRequestedForCheckoutSession() error {
+	return godog.ErrPending
+}
+
+func ticketMustBeSetToStatus(arg1 string) error {
+	return godog.ErrPending
+}
 
 func (r *reserveTicketTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^user should get error message "([^"]*)"$`, r.userShouldGetErrorMessage)
@@ -138,4 +169,12 @@ func (r *reserveTicketTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^user requests to reserve ticket number (\d+) of trip (\d+)$`, r.userRequestsToReserveTicketNumberOfTrip)
 	ctx.Step(`^ticket must be set "([^"]*)" for sale$`, r.ticketMustBeSetForSale)
 	ctx.Step(`^ticket reservstion do not succeed with in (\d+)s duration$`, r.ticketReservstionDoNotSucceedWithInSDuration)
+	ctx.Step(`^cancel checkout session is sent to payment gateway$`, cancelCheckoutSessionIsSentToPaymentGateway)
+	ctx.Step(`^check payment status on payment gateway$`, checkPaymentStatusOnPaymentGateway)
+	ctx.Step(`^checkout session is created$`, checkoutSessionIsCreated)
+	ctx.Step(`^payment cancelation response is successful$`, paymentCancelationResponseIsSuccessful)
+	ctx.Step(`^payment status checkout session returns "([^"]*)" for checkout session$`, paymentStatusCheckoutSessionReturnsForCheckoutSession)
+	ctx.Step(`^payment status for checkout session returns "([^"]*)"$`, paymentStatusForCheckoutSessionReturns)
+	ctx.Step(`^payment status is requested for checkout session$`, paymentStatusIsRequestedForCheckoutSession)
+	ctx.Step(`^ticket must be set to "([^"]*)" status$`, ticketMustBeSetToStatus)
 }
