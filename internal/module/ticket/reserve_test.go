@@ -4,8 +4,6 @@ import (
 	"context"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
-	paymentintegration "event_ticket/internal/platform/payment_integration"
-	storageTkt "event_ticket/internal/storage/ticket"
 	"fmt"
 	"time"
 
@@ -17,15 +15,54 @@ import (
 
 type reserveTicketTest struct {
 	tkt         module.Ticket
-	mockstorage *storageTkt.MockStorageTicket
+	mockstorage *MockStorageTicket
 	url         string
 	err         error
 }
 
+type MockStorageTicket struct {
+	Tkt model.Ticket
+}
+
+func InitMock(tkt model.Ticket) *MockStorageTicket {
+	return &MockStorageTicket{Tkt: tkt}
+}
+func (m *MockStorageTicket) HoldTicket(ticketNo, tripId int32) (model.Ticket, error) {
+
+	m.Tkt.Status = "Onhold"
+	return m.Tkt, nil
+
+}
+func (m *MockStorageTicket) GetTicket(tktNo, tripId int32) (model.Ticket, error) {
+	return m.Tkt, nil
+}
+func (m *MockStorageTicket) UnholdTicket(tktNo, tripId int32) (model.Ticket, error) {
+	if m.Tkt.Status == "Onhold" {
+		m.Tkt.Status = "Free"
+		return m.Tkt, nil
+	}
+	return model.Ticket{}, fmt.Errorf("failed to unhold ticket")
+}
+
+type MockPaymentGateWay struct {
+	logger slog.Logger
+}
+
+func InitMockGateway(logger slog.Logger) *MockPaymentGateWay {
+	return &MockPaymentGateWay{logger: logger}
+}
+
+func (m *MockPaymentGateWay) CreateCheckoutSession(ctx context.Context, ticketInfo model.Ticket) (url string, err error) {
+
+	return "https://chapa.com/checkout/session-id", nil
+}
+func (m *MockPaymentGateWay) CancelCheckoutSession(ctx context.Context, sessionId string) (bool, error) {
+	return true, nil
+}
 func TestReserveTicket(t *testing.T) {
 	logger := slog.Logger{}
-	store := storageTkt.InitMock(model.Ticket{})
-	platform := paymentintegration.InitMock(logger)
+	store := InitMock(model.Ticket{})
+	platform := InitMockGateway(logger)
 	reserveTkt := reserveTicketTest{
 		tkt:         Init(logger, store, platform),
 		mockstorage: store,
@@ -76,9 +113,11 @@ func (r *reserveTicketTest) theUserShouldGetCheckoutUrl() error {
 }
 
 func (r *reserveTicketTest) ticketNumberOfBusNumberForTripOfIdIs(tktNo, busNo, tripId int, status string) error {
-	_, err := r.mockstorage.AddTicket(int32(tktNo), int32(busNo), int32(tripId), status)
-	if err != nil {
-		return err
+	r.mockstorage.Tkt = model.Ticket{
+		TripId:   int32(tripId),
+		TicketNo: int32(tktNo),
+		BusNo:    int32(busNo),
+		Status:   status,
 	}
 
 	return nil

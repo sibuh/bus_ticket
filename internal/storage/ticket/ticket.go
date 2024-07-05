@@ -1,6 +1,7 @@
 package ticket
 
 import (
+	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 	"event_ticket/internal/storage"
 
@@ -9,6 +10,7 @@ import (
 
 type ticket struct {
 	logger slog.Logger
+	*db.Queries
 }
 
 func Init(logger slog.Logger) storage.Ticket {
@@ -16,7 +18,8 @@ func Init(logger slog.Logger) storage.Ticket {
 		logger: logger,
 	}
 }
-func (t *ticket) ReserveTicket(ticketNo, tripId int32) (model.Ticket, error) {
+func (t *ticket) HoldTicket(ticketNo, tripId int32) (model.Ticket, error) {
+
 	return model.Ticket{}, nil
 }
 func (t *ticket) GetTicket(tktNo, tripId int32) (model.Ticket, error) {

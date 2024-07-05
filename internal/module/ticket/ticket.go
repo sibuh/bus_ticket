@@ -56,7 +56,7 @@ func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId int32) (string
 		return "", &newError
 	}
 
-	tkt, err = t.storageTicket.ReserveTicket(tktNo, tripId)
+	tkt, err = t.storageTicket.HoldTicket(tktNo, tripId)
 
 	if err != nil {
 		return "", err
@@ -80,7 +80,16 @@ func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId int32) (string
 	}
 	time.AfterFunc(time.Second, func() {
 		func(tktNo, tripId int32, logger slog.Logger) {
-			_, err := t.storageTicket.UnholdTicket(tktNo, tripId)
+			_, err := t.platform.CancelCheckoutSession(ctx, "")
+			if err != nil {
+				newError := model.Error{
+					ErrCode:   http.StatusInternalServerError,
+					Message:   "failed to cancel checkout session",
+					RootError: err,
+				}
+				t.log.Error(newError.Error(), newError.ErrCode)
+			}
+			_, err = t.storageTicket.UnholdTicket(tktNo, tripId)
 			if err != nil {
 				logger.Error("failed to unhold ticket", err)
 			}
