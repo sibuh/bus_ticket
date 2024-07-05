@@ -97,12 +97,12 @@ type PaymentRequest struct {
 	Lang           string        `json:"lang"`
 }
 
-type Session struct {
-	SessionId   string  `json:"sessionId"`
-	PaymentUrl  string  `json:"paymentUrl"`
-	CancelUrl   string  `json:"cancelUrl"`
-	TotalAmount float64 `json:"totalAmount"`
-}
+//	type Session struct {
+//		SessionId   string  `json:"sessionId"`
+//		PaymentUrl  string  `json:"paymentUrl"`
+//		CancelUrl   string  `json:"cancelUrl"`
+//		TotalAmount float64 `json:"totalAmount"`
+//	}
 type CheckoutResponse struct {
 	Error   bool    `json:"error"`
 	Message string  `json:"message"`
@@ -165,4 +165,14 @@ type Ticket struct {
 	TicketNo int32
 	BusNo    int32
 	Status   string
+}
+
+type Session struct {
+	ID            string    `json:"id"`
+	Tkt           Ticket    `json:"tkt"`
+	PaymentStatus string    `json:"payment_status"`
+	PaymentUrl    string    `json:"paymentUrl"`
+	CancelUrl     string    `json:"cancelUrl"`
+	TotalAmount   float64   `json:"totalAmount"`
+	CreatedAt     time.Time `json:"created_at"`
 }

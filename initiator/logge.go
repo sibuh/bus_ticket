@@ -6,7 +6,7 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func InitLogger() slog.Logger {
+func InitLogger() *slog.Logger {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	return *logger
+	return logger
 }
