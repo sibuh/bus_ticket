@@ -9,11 +9,11 @@ import (
 )
 
 type ticket struct {
-	logger slog.Logger
+	logger *slog.Logger
 	*db.Queries
 }
 
-func Init(logger slog.Logger) storage.Ticket {
+func Init(logger *slog.Logger) storage.Ticket {
 	return &ticket{
 		logger: logger,
 	}

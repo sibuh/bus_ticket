@@ -43,7 +43,7 @@ func Initiate() {
 	logger.Info("initiate database")
 	queries := InitDB(viper.GetString("dbConn"))
 	logger.Info("intiating storage layer")
-	storage := NewStorage(user.Init(logger, queries), event.Init(&logger, queries), spmt.Init(logger, queries))
+	storage := NewStorage(user.Init(logger, queries), event.Init(logger, queries), spmt.Init(logger, queries))
 	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration"))
 	mware := middleware.NewMiddleware(logger, maker, storage.user)
 	module := NewModule(
@@ -53,7 +53,7 @@ func Initiate() {
 			maker,
 		),
 		storage.event,
-		mpayment.Init(&logger, storage.event),
+		mpayment.Init(logger, storage.event),
 		mtkt.Init(logger, stkt.Init(logger), paymentintegration.Init(logger)),
 	)
 	err := godotenv.Load()
@@ -66,7 +66,7 @@ func Initiate() {
 			os.Getenv("PUBLISHABLE_KEY"),
 			os.Getenv("SECRET_KEY"),
 			logger, module.payment),
-		hevnt.Init(&logger, module.event),
+		hevnt.Init(logger, module.event),
 		ticket.Init(logger, module.payment, module.ticket),
 	)
 	routing.InitRouter(v1, handler.user, handler.payment, handler.event, handler.ticket, mware)

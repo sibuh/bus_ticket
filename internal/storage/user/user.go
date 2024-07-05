@@ -13,11 +13,11 @@ import (
 )
 
 type user struct {
-	log     slog.Logger
+	log     *slog.Logger
 	queries *db.Queries
 }
 
-func Init(logger slog.Logger, queries *db.Queries) storage.User {
+func Init(logger *slog.Logger, queries *db.Queries) storage.User {
 
 	return &user{
 		log:     logger,

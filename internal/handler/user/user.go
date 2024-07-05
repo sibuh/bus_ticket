@@ -12,11 +12,11 @@ import (
 )
 
 type user struct {
-	logger slog.Logger
+	logger *slog.Logger
 	user   module.User
 }
 
-func Init(logger slog.Logger, usr module.User) handler.User {
+func Init(logger *slog.Logger, usr module.User) handler.User {
 	return &user{
 		logger: logger,
 		user:   usr,

@@ -15,12 +15,12 @@ import (
 const authType string = "Bearer"
 
 type Middleware struct {
-	logger slog.Logger
+	logger *slog.Logger
 	maker  token.TokenMaker
 	us     storage.User
 }
 
-func NewMiddleware(logger slog.Logger, maker token.TokenMaker, us storage.User) Middleware {
+func NewMiddleware(logger *slog.Logger, maker token.TokenMaker, us storage.User) Middleware {
 	return Middleware{
 		logger: logger,
 		maker:  maker,

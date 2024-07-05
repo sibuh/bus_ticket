@@ -9,12 +9,12 @@ import (
 )
 
 type ticket struct {
-	log     slog.Logger
+	log     *slog.Logger
 	payment module.Payment
 	tkt     module.Ticket
 }
 
-func Init(log slog.Logger, pmt module.Payment, tkt module.Ticket) handler.Ticket {
+func Init(log *slog.Logger, pmt module.Payment, tkt module.Ticket) handler.Ticket {
 	return &ticket{
 		log:     log,
 		payment: pmt,

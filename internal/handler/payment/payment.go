@@ -16,11 +16,11 @@ import (
 type payment struct {
 	publishableKey string
 	secretKey      string
-	logger         slog.Logger
+	logger         *slog.Logger
 	pm             module.Payment
 }
 
-func Init(pkey, secretKey string, logger slog.Logger, pm module.Payment) handler.Payment {
+func Init(pkey, secretKey string, logger *slog.Logger, pm module.Payment) handler.Payment {
 	return &payment{
 		publishableKey: pkey,
 		secretKey:      secretKey,
