@@ -31,9 +31,10 @@ func TestReserveTicket(t *testing.T) {
 		tkt:         Init(logger, store, platform),
 		mockstorage: store,
 	}
+
 	result := godog.TestSuite{
 		Name:                 "ticket reservation test",
-		TestSuiteInitializer: nil,
+		TestSuiteInitializer: func(tsc *godog.TestSuiteContext) {},
 		ScenarioInitializer:  reserveTkt.InitializeScenario,
 		Options: &godog.Options{
 			Paths:  []string{"reserve.feature"},
