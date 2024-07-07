@@ -31,9 +31,10 @@ package ticket
 // 		tkt:         Init(logger, store, platform),
 // 		mockstorage: store,
 // 	}
+
 // 	result := godog.TestSuite{
 // 		Name:                 "ticket reservation test",
-// 		TestSuiteInitializer: nil,
+// 		TestSuiteInitializer: func(tsc *godog.TestSuiteContext) {},
 // 		ScenarioInitializer:  reserveTkt.InitializeScenario,
 // 		Options: &godog.Options{
 // 			Paths:  []string{"reserve.feature"},
@@ -45,6 +46,7 @@ package ticket
 // 	}
 
 // }
+
 // func (r *reserveTicketTest) ticketMustBeSetForSale(status string) error {
 // 	if r.mockstorage.Tkt.Status != status {
 // 		return fmt.Errorf("ticket status is not set free")

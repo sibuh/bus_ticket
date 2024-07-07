@@ -25,7 +25,7 @@ func TestReserveTicket(t *testing.T) {
 }
 
 func aFreeTicket(ctx context.Context, t *godog.Table) (context.Context, error) {
-	fmt.Printf("godog table, %v", t)
+	fmt.Printf("godog table, %v", *t)
 	return ctx, nil
 }
 
