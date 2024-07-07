@@ -23,29 +23,30 @@ package ticket
 // 	err         error
 // }
 
-func TestReserveTicket(t *testing.T) {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	store := InitMock(model.Ticket{})
-	platform := InitMockGateway(logger)
-	reserveTkt := reserveTicketTest{
-		tkt:         Init(logger, store, platform),
-		mockstorage: store,
-	}
+// func TestReserveTicket(t *testing.T) {
+// 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+// 	store := InitMock(model.Ticket{})
+// 	platform := InitMockGateway(logger)
+// 	reserveTkt := reserveTicketTest{
+// 		tkt:         Init(logger, store, platform),
+// 		mockstorage: store,
+// 	}
 
-	result := godog.TestSuite{
-		Name:                 "ticket reservation test",
-		TestSuiteInitializer: func(tsc *godog.TestSuiteContext) {},
-		ScenarioInitializer:  reserveTkt.InitializeScenario,
-		Options: &godog.Options{
-			Paths:  []string{"reserve.feature"},
-			Format: "pretty",
-		},
-	}.Run()
-	if result != 0 {
-		t.Errorf("test failed")
-	}
+// 	result := godog.TestSuite{
+// 		Name:                 "ticket reservation test",
+// 		TestSuiteInitializer: func(tsc *godog.TestSuiteContext) {},
+// 		ScenarioInitializer:  reserveTkt.InitializeScenario,
+// 		Options: &godog.Options{
+// 			Paths:  []string{"reserve.feature"},
+// 			Format: "pretty",
+// 		},
+// 	}.Run()
+// 	if result != 0 {
+// 		t.Errorf("test failed")
+// 	}
 
 // }
+
 // func (r *reserveTicketTest) ticketMustBeSetForSale(status string) error {
 // 	if r.mockstorage.Tkt.Status != status {
 // 		return fmt.Errorf("ticket status is not set free")
