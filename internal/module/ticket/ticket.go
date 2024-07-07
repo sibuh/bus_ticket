@@ -17,6 +17,7 @@ type ticket struct {
 	storageTicket storage.Ticket
 	platform      platform.PaymentGatewayIntegrator
 }
+
 type TicketStatus string
 
 const (
@@ -92,6 +93,9 @@ func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId int32) (model.
 		return model.Session{}, &newError
 	}
 
+	// SERVIER.ON('INIT, HANDLESERVERINIT)
+	// READ FROM DATABASE PENDING STATUS CHECKOUT SESSION `[]SESSION`
+	// LOOP TIME.AFTERfUNC(TIME.NOW() - SESSION.TIME)
 	time.AfterFunc(time.Second, func() {
 		func(tktNo, tripId int32, logger *slog.Logger) {
 			_, err := t.platform.CancelCheckoutSession(ctx, "")
