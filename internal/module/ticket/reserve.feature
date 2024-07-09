@@ -2,9 +2,11 @@ Feature: Ticket Resevation
 
   Scenario: user send reservation request for free ticket
     Given a free ticket
-      | no | busNo | trip | status |
-      | 12 |    10 |  779 | free   |
+      | ticket no | bus no | trip id | status |
+      | 12        |    10  |  779    | Free   |
     When user requests to reserve ticket
+      |ticket no |trip id |bus no|
+      |12        | 779    | 10   |
     Then the ticket status should be "Onhold"
     And checkout session request should be sent
   # Scenario: checkout session create request responds success

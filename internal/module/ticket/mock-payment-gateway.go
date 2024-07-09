@@ -4,6 +4,7 @@ import (
 	"context"
 	"event_ticket/internal/constant"
 	"event_ticket/internal/model"
+	"event_ticket/internal/platform"
 	"fmt"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 
 type MockPaymentGateWay struct {
 	logger *slog.Logger
+	platform.PaymentGatewayIntegrator
 }
 
 func InitMockGateway(logger *slog.Logger) *MockPaymentGateWay {
@@ -30,7 +32,4 @@ func (m *MockPaymentGateWay) CreateCheckoutSession(ctx context.Context, ticketIn
 		PaymentUrl:    "https://chapa.com/checkout/session-id",
 		CreatedAt:     time.Now(),
 	}, nil
-}
-func (m *MockPaymentGateWay) CancelCheckoutSession(ctx context.Context, ID string) (bool, error) {
-	return true, nil
 }

@@ -2,10 +2,17 @@ package ticket
 
 import (
 	"context"
+	"event_ticket/internal/model"
+	readtable "event_ticket/readTable"
+	"fmt"
+
 	"testing"
 
 	"github.com/cucumber/godog"
+	"github.com/mitchellh/mapstructure"
 )
+
+type contextKey string
 
 func TestReserveTicket(t *testing.T) {
 	result := godog.TestSuite{
@@ -24,19 +31,58 @@ func TestReserveTicket(t *testing.T) {
 }
 
 func aFreeTicket(ctx context.Context, t *godog.Table) (context.Context, error) {
+	result, err := readtable.ReadTableData(t, []readtable.Column{
+		{
+			ColimnName: "ticket_no",
+			ColumnType: readtable.Int,
+		},
+		{
+			ColimnName: "bus_no",
+			ColumnType: readtable.Int,
+		},
+		{
+			ColimnName: "trip_id",
+			ColumnType: readtable.String,
+		},
+		{
+			ColimnName: "status",
+			ColumnType: readtable.String,
+		},
+	})
+	if err != nil {
+		return ctx, err
+	}
+
+	var tickets []model.Ticket
+
+	err = mapstructure.Decode(result, &tickets)
+	if err != nil {
+		return ctx, err
+	}
+	var key contextKey
+	ctx = context.WithValue(ctx, key, tickets[0])
+
 	return ctx, nil
 }
 
 func checkoutSessionRequestShouldBeSent() error {
-	return godog.ErrPending
+
+	return nil
 }
 
 func theTicketStatusShouldBe(arg1 string) error {
 	return godog.ErrPending
 }
 
-func userRequestsToReserveTicket() error {
-	return godog.ErrPending
+func userRequestsToReserveTicket(arg1 *godog.Table, ctx context.Context) (context.Context, error) {
+	_, ok := ctx.Value(contextKey("key")).(model.Ticket)
+	if !ok {
+		return ctx, fmt.Errorf("no value found in context")
+	}
+
+	// moduleTicket := Init(slog.New(slog.NewJSONHandler(os.Stdout, nil)), InitMock(tkt))
+
+	return ctx, nil
 }
 
 func initScenario(sc *godog.ScenarioContext) {

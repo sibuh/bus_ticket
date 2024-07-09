@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/aead/chacha20poly1305 v0.0.0-20170617001512-233f39982aeb
 	github.com/cucumber/godog v0.14.1
-	github.com/cucumber/messages-go/v16 v16.0.1
 	github.com/cucumber/messages/go/v21 v21.0.1
 	github.com/dongri/phonenumber v0.1.2
 	github.com/gin-gonic/gin v1.9.1
@@ -14,6 +13,7 @@ require (
 	github.com/jackc/pgconn v1.14.1
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/lpernett/godotenv v0.0.0-20230527005122-0de1d4c5ef5e
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/o1egl/paseto v1.0.0
 	github.com/spf13/viper v1.18.2
 	github.com/stripe/stripe-go/v78 v78.7.0
@@ -53,7 +53,6 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.1 // indirect
