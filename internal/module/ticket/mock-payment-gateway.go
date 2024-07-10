@@ -14,11 +14,12 @@ import (
 
 type MockPaymentGateWay struct {
 	logger *slog.Logger
+	url    string
 	platform.PaymentGatewayIntegrator
 }
 
-func InitMockGateway(logger *slog.Logger) *MockPaymentGateWay {
-	return &MockPaymentGateWay{logger: logger}
+func InitMockGateway(logger *slog.Logger, url string) *MockPaymentGateWay {
+	return &MockPaymentGateWay{logger: logger, url: url}
 }
 
 func (m *MockPaymentGateWay) CreateCheckoutSession(ctx context.Context, ticketInfo model.Ticket) (model.Session, error) {

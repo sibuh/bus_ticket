@@ -10,7 +10,7 @@ import (
 
 type ticket struct {
 	logger *slog.Logger
-	*db.Queries
+	db.Querier
 }
 
 func Init(logger *slog.Logger) storage.Ticket {

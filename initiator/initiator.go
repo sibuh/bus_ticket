@@ -54,7 +54,7 @@ func Initiate() {
 		),
 		storage.event,
 		mpayment.Init(logger, storage.event),
-		mtkt.Init(logger, stkt.Init(logger), paymentintegration.Init(logger)),
+		mtkt.Init(logger, stkt.Init(logger), paymentintegration.Init(logger, viper.GetString("payment.url"))),
 	)
 	err := godotenv.Load()
 	if err != nil {
