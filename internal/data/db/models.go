@@ -45,3 +45,10 @@ type User struct {
 	UpdatedAt sql.NullTime
 	DeletedAt sql.NullTime
 }
+
+type Ticket struct{
+	BusNo int32
+	TripID int32
+	TicketNo int32
+	Status  string
+} 

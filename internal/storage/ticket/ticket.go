@@ -10,12 +10,13 @@ import (
 
 type ticket struct {
 	logger *slog.Logger
-	db.Querier
+	db     db.Querier
 }
 
-func Init(logger *slog.Logger) storage.Ticket {
+func Init(logger *slog.Logger, db db.Querier) storage.Ticket {
 	return &ticket{
 		logger: logger,
+		db:     db,
 	}
 }
 func (t *ticket) HoldTicket(ticketNo, tripId int32) (model.Ticket, error) {
