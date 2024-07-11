@@ -34,7 +34,7 @@ func Init(log *slog.Logger, tkt storage.Ticket, platform platform.PaymentGateway
 	}
 }
 
-func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId int32) (model.Session, error) {
+func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId, busNo int32) (model.Session, error) {
 	tkt, err := t.storageTicket.GetTicket(tktNo, tripId)
 	if err != nil {
 		return model.Session{}, err
@@ -57,7 +57,7 @@ func (t *ticket) ReserveTicket(ctx context.Context, tktNo, tripId int32) (model.
 		return model.Session{}, &newError
 	}
 
-	tkt, err = t.storageTicket.HoldTicket(tktNo, tripId)
+	tkt, err = t.storageTicket.HoldTicket(ctx, tktNo, tripId, busNo)
 
 	if err != nil {
 		return model.Session{}, err

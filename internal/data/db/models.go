@@ -33,6 +33,13 @@ type Payment struct {
 	UpdatedAt     time.Time
 }
 
+type Ticket struct {
+	TripID   int32
+	BusNo    int32
+	TicketNo int32
+	Status   sql.NullString
+}
+
 type User struct {
 	ID        int32
 	FirstName string
@@ -45,10 +52,3 @@ type User struct {
 	UpdatedAt sql.NullTime
 	DeletedAt sql.NullTime
 }
-
-type Ticket struct{
-	BusNo int32
-	TripID int32
-	TicketNo int32
-	Status  string
-} 

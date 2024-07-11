@@ -3,4 +3,4 @@ CREATE TABLE tickets (
     bus_no int NOT NULL,
     ticket_no int NOT NULL,
     status VARCHAR(20)
-)
+);
