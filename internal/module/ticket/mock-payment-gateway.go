@@ -1,35 +1,43 @@
 package ticket
 
 import (
+	"bytes"
 	"context"
-	"event_ticket/internal/constant"
+	"encoding/json"
 	"event_ticket/internal/model"
 	"event_ticket/internal/platform"
-	"fmt"
-	"time"
+	"io/ioutil"
+	"net/http"
 
-	"github.com/google/uuid"
 	"golang.org/x/exp/slog"
 )
 
 type MockPaymentGateWay struct {
 	logger *slog.Logger
+	url    string
 	platform.PaymentGatewayIntegrator
 }
 
-func InitMockGateway(logger *slog.Logger) *MockPaymentGateWay {
-	return &MockPaymentGateWay{logger: logger}
+func InitMockGateway(logger *slog.Logger, url string) *MockPaymentGateWay {
+	return &MockPaymentGateWay{logger: logger, url: url}
 }
 
 func (m *MockPaymentGateWay) CreateCheckoutSession(ctx context.Context, ticketInfo model.Ticket) (model.Session, error) {
-	if ticketInfo.TripId == int32(779) {
-		return model.Session{}, fmt.Errorf("failed to create checkout session")
+	b, err := json.Marshal(ticketInfo)
+	if err != nil {
+		return model.Session{}, err
 	}
-	return model.Session{
-		ID:            uuid.NewString(),
-		Tkt:           model.Ticket{},
-		PaymentStatus: string(constant.Pending),
-		PaymentUrl:    "https://chapa.com/checkout/session-id",
-		CreatedAt:     time.Now(),
-	}, nil
+	resp, err := http.Post(m.url, "application/json", bytes.NewBuffer(b))
+	if err != nil {
+		return model.Session{}, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return model.Session{}, err
+	}
+	r := model.Session{}
+	if err := json.Unmarshal(body, &r); err != nil {
+		return model.Session{}, err
+	}
+	return r, nil
 }

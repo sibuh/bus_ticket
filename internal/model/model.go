@@ -161,10 +161,14 @@ type Payment struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 type Ticket struct {
-	TripId   int32  `mapstructure:"trip_id"`
-	TicketNo int32  `mapstructure:"ticket_no"`
-	BusNo    int32  `mapstructure:"bus_no"`
-	Status   string `mapstructure:"status"`
+	TripID   int32  `mapstructure:"trip_id" json:"trip_id"`
+	TicketNo int32  `mapstructure:"ticket_no" json:"ticket_no"`
+	BusNo    int32  `mapstructure:"bus_no" json:"bus_no"`
+	Status   string `mapstructure:"status" json:"status"`
+}
+type ReserveTicketRequest struct {
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
 
 type Session struct {

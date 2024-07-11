@@ -9,11 +9,15 @@ import (
 )
 
 type paymentGateway struct {
-	loger *slog.Logger
+	logger *slog.Logger
+	url    string
 }
 
-func Init(logger *slog.Logger) platform.PaymentGatewayIntegrator {
-	return &paymentGateway{}
+func Init(logger *slog.Logger, url string) platform.PaymentGatewayIntegrator {
+	return &paymentGateway{
+		logger: logger,
+		url:    url,
+	}
 }
 func (p *paymentGateway) CreateCheckoutSession(ctx context.Context, ticketInfo model.Ticket) (model.Session, error) {
 	//TODO:create checkout session
