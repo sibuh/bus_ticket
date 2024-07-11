@@ -1,157 +1,200 @@
 package ticket
 
-// import (
-// 	"context"
-// 	"event_ticket/internal/constant"
-// 	"event_ticket/internal/model"
-// 	"event_ticket/internal/module"
-// 	"fmt"
-// 	"os"
-// 	"time"
+import (
+	"context"
+	"database/sql"
+	"event_ticket/internal/data/db"
+	"event_ticket/internal/model"
+	paymentintegration "event_ticket/internal/platform/payment_integration"
+	sticket "event_ticket/internal/storage/ticket"
+	"net/http"
+	"net/http/httptest"
 
-// 	"testing"
+	readtable "event_ticket/readTable"
+	"fmt"
+	"os"
 
-// 	"github.com/cucumber/godog"
-// 	"github.com/google/uuid"
-// 	"golang.org/x/exp/slog"
-// )
+	"testing"
 
-// type reserveTicketTest struct {
-// 	tkt         module.Ticket
-// 	session     model.Session
-// 	mockstorage *MockStorageTicket
-// 	err         error
-// }
+	"github.com/cucumber/godog"
+	"github.com/mitchellh/mapstructure"
+	"golang.org/x/exp/slog"
+)
 
-// func TestReserveTicket(t *testing.T) {
-// 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-// 	store := InitMock(model.Ticket{})
-// 	platform := InitMockGateway(logger)
-// 	reserveTkt := reserveTicketTest{
-// 		tkt:         Init(logger, store, platform),
-// 		mockstorage: store,
-// 	}
+type contextKey string
 
-// 	result := godog.TestSuite{
-// 		Name:                 "ticket reservation test",
-// 		TestSuiteInitializer: func(tsc *godog.TestSuiteContext) {},
-// 		ScenarioInitializer:  reserveTkt.InitializeScenario,
-// 		Options: &godog.Options{
-// 			Paths:  []string{"reserve.feature"},
-// 			Format: "pretty",
-// 		},
-// 	}.Run()
-// 	if result != 0 {
-// 		t.Errorf("test failed")
-// 	}
+type MockQueries struct {
+	db.Querier
+	Tkt db.Ticket
+}
 
-// }
+func (m *MockQueries) UpdateTicketStatus(ctx context.Context, arg db.UpdateTicketStatusParams) (db.Ticket, error) {
+	m.Tkt = db.Ticket{
+		TicketNo: arg.TicketNo,
+		BusNo:    arg.BusNo,
+		TripID:   arg.TripID,
+		Status: sql.NullString{
+			String: "Onhold",
+			Valid:  true,
+		}}
 
-// func (r *reserveTicketTest) ticketMustBeSetForSale(status string) error {
-// 	if r.mockstorage.Tkt.Status != status {
-// 		return fmt.Errorf("ticket status is not set free")
-// 	}
-// 	return nil
-// }
-// func (r *reserveTicketTest) ticketReservstionDoNotSucceedWithInSDuration(delay int) error {
-// 	time.Sleep(10 * time.Second)
-// 	return nil
-// }
-// func (r *reserveTicketTest) userShouldGetErrorMessage(errMsg string) error {
-// 	if r.err.Error() != errMsg {
-// 		return fmt.Errorf("want:%s got: %s", errMsg, r.err.Error())
-// 	}
-// 	return nil
-// }
+	return m.Tkt, nil
+}
 
-// func (r *reserveTicketTest) theTicketStatusShouldBe(status string) error {
-// 	if r.mockstorage.Tkt.Status != status {
-// 		return fmt.Errorf("want: %s got: %s", status, r.mockstorage.Tkt.Status)
-// 	}
-// 	return nil
-// }
+var mockqueries *MockQueries
+var CallCount = 0
 
-// func (r *reserveTicketTest) theUserShouldGetCheckoutUrl() error {
-// 	if r.session.PaymentUrl == "" {
-// 		return fmt.Errorf("checkout url not returned")
-// 	}
-// 	return nil
-// }
+func TestReserveTicket(t *testing.T) {
+	testCases := []struct {
+		Name                string
+		ScenarioInitializer func(sc *godog.ScenarioContext)
+		FeatureFilepath     string
+	}{
+		{
+			Name:                "user requests to reserve free ticket",
+			ScenarioInitializer: reserveFreeticket,
+			FeatureFilepath:     "reserve.feature",
+		},
+	}
+	for _, tc := range testCases {
 
-// func (r *reserveTicketTest) ticketNumberOfBusNumberForTripOfIdIs(tktNo, busNo, tripId int, status string) error {
-// 	r.mockstorage.Tkt = model.Ticket{
-// 		TripId:   int32(tripId),
-// 		TicketNo: int32(tktNo),
-// 		BusNo:    int32(busNo),
-// 		Status:   status,
-// 	}
+		t.Run(tc.Name, func(t *testing.T) {
+			result := godog.TestSuite{
+				Name:                 tc.Name,
+				TestSuiteInitializer: nil,
+				ScenarioInitializer:  tc.ScenarioInitializer,
+				Options: &godog.Options{
+					Paths:    []string{tc.FeatureFilepath},
+					Format:   "pretty",
+					TestingT: t,
+				},
+			}.Run()
+			if result != 0 {
+				t.Errorf("test failed")
+			}
+		})
+	}
 
-// 	return nil
-// }
+}
 
-// func (r *reserveTicketTest) userRequestsToReserveTicketNumberOfTrip(tktNo, tripId int) error {
+func aFreeTicket(ctx context.Context, t *godog.Table) (context.Context, error) {
+	result, err := readtable.ReadTableData(t, []readtable.Column{
+		{
+			ColimnName: "ticket_no",
+			ColumnType: readtable.Int,
+		},
+		{
+			ColimnName: "bus_no",
+			ColumnType: readtable.Int,
+		},
+		{
+			ColimnName: "trip_id",
+			ColumnType: readtable.Int,
+		},
+		{
+			ColimnName: "status",
+			ColumnType: readtable.String,
+		},
+	})
+	if err != nil {
+		return ctx, err
+	}
 
-// 	r.session, r.err = r.tkt.ReserveTicket(context.Background(), int32(tktNo), int32(tripId))
+	var tickets []model.Ticket
 
-// 	return nil
-// }
-// func (r *reserveTicketTest) cancelCheckoutSessionIsSentToPaymentGateway() error {
-// 	return nil
-// }
+	err = mapstructure.Decode(result, &tickets)
+	if err != nil {
+		return ctx, err
+	}
+	mockqueries = &MockQueries{
+		Tkt: db.Ticket{
+			TripID: tickets[0].TripID,
+			BusNo:  tickets[0].TicketNo,
+			Status: sql.NullString{
+				String: tickets[0].Status,
+				Valid:  true,
+			},
+			TicketNo: tickets[0].TicketNo,
+		},
+	}
+	var dbQueriesKey contextKey = "key"
+	ctx = context.WithValue(ctx, dbQueriesKey, mockqueries)
 
-// func (r *reserveTicketTest) checkPaymentStatusOnPaymentGateway() error {
-// 	return nil
-// }
+	return ctx, nil
+}
 
-// func (r *reserveTicketTest) checkoutSessionIsCreated(arg1 *godog.Table) error {
-// 	r.session = model.Session{
-// 		ID: uuid.NewString(),
-// 		Tkt: model.Ticket{
-// 			TripId:   int32(778),
-// 			TicketNo: int32(12),
-// 			BusNo:    int32(10),
-// 			Status:   string(constant.Onhold),
-// 		},
-// 		CreatedAt:     time.Now(),
-// 		PaymentStatus: string(constant.Pending),
-// 	}
-// 	return nil
-// }
+func checkoutSessionRequestShouldBeSent(ctx context.Context) error {
 
-// func (r *reserveTicketTest) paymentCancelationResponseIsSuccessful() error {
-// 	return nil
-// }
+	count := ctx.Value(contextKey("countKey")).(int)
+	if count != 1 {
+		return fmt.Errorf("checkout session not created")
+	}
+	return nil
+}
 
-// func (r *reserveTicketTest) paymentStatusCheckoutSessionReturnsForCheckoutSession(arg1 string) error {
-// 	return nil
-// }
+func theTicketStatusShouldBe(arg1 string) error {
+	if mockqueries.Tkt.Status.String != arg1 {
+		return fmt.Errorf("tickets status not updated want %s: got: %s", arg1, mockqueries.Tkt.Status.String)
+	}
+	return nil
+}
 
-// func (r *reserveTicketTest) paymentStatusForCheckoutSessionReturns(arg1 string) error {
-// 	return nil
-// }
+func userRequestsToReserveTicket(ctx context.Context, arg1 *godog.Table) (context.Context, error) {
+	result, err := readtable.ReadTableData(arg1, []readtable.Column{
+		{
+			ColimnName: "ticket_no",
+			ColumnType: readtable.Int,
+		},
+		{
+			ColimnName: "bus_no",
+			ColumnType: readtable.Int,
+		},
+		{
+			ColimnName: "trip_id",
+			ColumnType: readtable.Int,
+		},
+	})
+	if err != nil {
+		return ctx, err
+	}
 
-// func (r *reserveTicketTest) paymentStatusIsRequestedForCheckoutSession() error {
-// 	return nil
-// }
+	var tickets []model.Ticket
 
-// func (r *reserveTicketTest) ticketMustBeSetToStatus(arg1 string) error {
-// 	return nil
-// }
+	err = mapstructure.Decode(result, &tickets)
+	if err != nil {
+		return ctx, err
+	}
+	mqueries, ok := ctx.Value(contextKey("key")).(*MockQueries)
+	if !ok {
+		return ctx, fmt.Errorf("no value found in context")
+	}
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	store := sticket.Init(logger, mqueries)
 
-// func (r *reserveTicketTest) InitializeScenario(ctx *godog.ScenarioContext) {
-// 	ctx.Step(`^user should get error message "([^"]*)"$`, r.userShouldGetErrorMessage)
-// 	ctx.Step(`^the ticket status should be "([^"]*)"$`, r.theTicketStatusShouldBe)
-// 	ctx.Step(`^the user should get checkout url$`, r.theUserShouldGetCheckoutUrl)
-// 	ctx.Step(`^ticket number (\d+) of bus number (\d+) for trip of id (\d+) is "([^"]*)"$`, r.ticketNumberOfBusNumberForTripOfIdIs)
-// 	ctx.Step(`^user requests to reserve ticket number (\d+) of trip (\d+)$`, r.userRequestsToReserveTicketNumberOfTrip)
-// 	ctx.Step(`^ticket must be set "([^"]*)" for sale$`, r.ticketMustBeSetForSale)
-// 	ctx.Step(`^ticket reservstion do not succeed with in (\d+)s duration$`, r.ticketReservstionDoNotSucceedWithInSDuration)
-// 	ctx.Step(`^cancel checkout session is sent to payment gateway$`, r.cancelCheckoutSessionIsSentToPaymentGateway)
-// 	ctx.Step(`^check payment status on payment gateway$`, r.checkPaymentStatusOnPaymentGateway)
-// 	ctx.Step(`^checkout session is created$`, r.checkoutSessionIsCreated)
-// 	ctx.Step(`^payment cancelation response is successful$`, r.paymentCancelationResponseIsSuccessful)
-// 	ctx.Step(`^payment status checkout session returns "([^"]*)" for checkout session$`, r.paymentStatusCheckoutSessionReturnsForCheckoutSession)
-// 	ctx.Step(`^payment status for checkout session returns "([^"]*)"$`, r.paymentStatusForCheckoutSessionReturns)
-// 	ctx.Step(`^payment status is requested for checkout session$`, r.paymentStatusIsRequestedForCheckoutSession)
-// 	ctx.Step(`^ticket must be set to "([^"]*)" status$`, r.ticketMustBeSetToStatus)
-// }
+	url := ctx.Value(contextKey("serverURLKey")).(string)
+	mpg := paymentintegration.Init(logger, url)
+
+	moduleTicket := Init(slog.New(slog.NewJSONHandler(os.Stdout, nil)), store, mpg)
+	_, err = moduleTicket.ReserveTicket(ctx, tickets[0].TicketNo, tickets[0].TripID, tickets[0].BusNo)
+	if err != nil {
+		return ctx, err
+	}
+	var countKey contextKey = "countKey"
+	ctx = context.WithValue(ctx, countKey, CallCount)
+	return ctx, nil
+}
+
+func reserveFreeticket(sc *godog.ScenarioContext) {
+	sc.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			CallCount++
+		}))
+		var serverKey contextKey = "serverURLKey"
+		ctx = context.WithValue(ctx, serverKey, server.URL)
+		return ctx, nil
+	})
+	sc.Step(`^a free ticket$`, aFreeTicket)
+	sc.Step(`^user requests to reserve ticket$`, userRequestsToReserveTicket)
+	sc.Step(`^the ticket status should be "([^"]*)"$`, theTicketStatusShouldBe)
+	sc.Step(`^checkout session request should be sent$`, checkoutSessionRequestShouldBeSent)
+}
