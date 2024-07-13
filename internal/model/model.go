@@ -161,6 +161,7 @@ type Payment struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 type Ticket struct {
+	ID       string `mapstructure:"id" json:"id"`
 	TripID   int32  `mapstructure:"trip_id" json:"trip_id"`
 	TicketNo int32  `mapstructure:"ticket_no" json:"ticket_no"`
 	BusNo    int32  `mapstructure:"bus_no" json:"bus_no"`

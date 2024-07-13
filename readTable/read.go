@@ -35,8 +35,6 @@ func ReadTableData(arg1 *godog.Table, fields []Column) ([]map[string]interface{}
 			modifiedColumnNames = append(modifiedColumnNames, split[0])
 		}
 	}
-	fmt.Println("modified column Names:", modifiedColumnNames)
-
 	// convert tables of data into []map[string]interface{}{}
 	for i, r := range arg1.Rows {
 		if i == 0 {

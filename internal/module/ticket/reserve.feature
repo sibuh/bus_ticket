@@ -2,20 +2,14 @@ Feature: Ticket Resevation
 
   Scenario: user send reservation request for free ticket
     Given a free ticket
-      | ticket no | bus no | trip id | status |
-      | 12        |    10  |  779    | Free   |
     When user requests to reserve ticket
-      |ticket no |trip id |bus no|
-      |12        | 779    | 10   |
     Then the ticket status should be "Onhold"
     And checkout session request should be sent
-  # Scenario: checkout session create request responds success
-  #   Given create checkout session succeeds
-  #     | id | ticket number | bus number | time     | url                        |
-  #     |  1 |            12 |         10 | 12-12-20 | "http://localhost.pay.com/ |
-  #   When user requests to reserve ticket
-  #   Then checkout session should be stored
-  #   And the user should get checkout url
+  Scenario: checkout session create request responds success
+   Given a free ticket
+    When create checkout session succeeds for reserving ticket request
+    Then checkout session should be stored
+    And the user should get checkout url
   # Scenario: checkout session create request fails
   #   Given create checkout session request is failing # createCheckoutSession() => error
   #   When user requested to reserve ticket

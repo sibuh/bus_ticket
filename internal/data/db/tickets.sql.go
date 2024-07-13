@@ -10,17 +10,16 @@ import (
 )
 
 const updateTicketStatus = `-- name: UpdateTicketStatus :one
-UPDATE tickets SET status ='Onhold' WHERE ticket_no=$1 AND bus_no=$2 AND trip_id=$3 RETURNING trip_id, bus_no, ticket_no, status
+UPDATE tickets SET status =$1 WHERE id=$2 RETURNING id,trip_id, bus_no, ticket_no, status
 `
 
 type UpdateTicketStatusParams struct {
-	TicketNo int32
-	BusNo    int32
-	TripID   int32
+	ID string
+	Status string
 }
 
 func (q *Queries) UpdateTicketStatus(ctx context.Context, arg UpdateTicketStatusParams) (Ticket, error) {
-	row := q.db.QueryRow(ctx, updateTicketStatus, arg.TicketNo, arg.BusNo, arg.TripID)
+	row := q.db.QueryRow(ctx, updateTicketStatus, arg.Status,arg.ID)
 	var i Ticket
 	err := row.Scan(
 		&i.TripID,
@@ -29,4 +28,8 @@ func (q *Queries) UpdateTicketStatus(ctx context.Context, arg UpdateTicketStatus
 		&i.Status,
 	)
 	return i, err
+}
+
+func(q *Queries)GetTicket(ctx context.Context,id string)(Ticket,error){
+	return Ticket{},nil
 }
