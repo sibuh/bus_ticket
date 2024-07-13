@@ -6,7 +6,7 @@ import (
 )
 
 type Ticket interface {
-	ReserveTicket(ctx context.Context, ticketNo, tripId, busNo int32) (model.Session, error)
+	ReserveTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Session, error)
 }
 
 type User interface {

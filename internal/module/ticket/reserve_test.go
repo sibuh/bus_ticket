@@ -2,7 +2,7 @@ package ticket
 
 import (
 	"context"
-	"database/sql"
+	"event_ticket/internal/constant"
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 	paymentintegration "event_ticket/internal/platform/payment_integration"
@@ -10,14 +10,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	readtable "event_ticket/readTable"
 	"fmt"
 	"os"
 
 	"testing"
 
 	"github.com/cucumber/godog"
-	"github.com/mitchellh/mapstructure"
+	"github.com/google/uuid"
 	"golang.org/x/exp/slog"
 )
 
@@ -30,13 +29,9 @@ type MockQueries struct {
 
 func (m *MockQueries) UpdateTicketStatus(ctx context.Context, arg db.UpdateTicketStatusParams) (db.Ticket, error) {
 	m.Tkt = db.Ticket{
-		TicketNo: arg.TicketNo,
-		BusNo:    arg.BusNo,
-		TripID:   arg.TripID,
-		Status: sql.NullString{
-			String: "Onhold",
-			Valid:  true,
-		}}
+		ID:     arg.ID,
+		Status: arg.Status,
+	}
 
 	return m.Tkt, nil
 }
@@ -52,7 +47,7 @@ func TestReserveTicket(t *testing.T) {
 	}{
 		{
 			Name:                "user requests to reserve free ticket",
-			ScenarioInitializer: reserveFreeticket,
+			ScenarioInitializer: ReserveFreeticketScenario,
 			FeatureFilepath:     "reserve.feature",
 		},
 	}
@@ -77,47 +72,18 @@ func TestReserveTicket(t *testing.T) {
 
 }
 
-func aFreeTicket(ctx context.Context, t *godog.Table) (context.Context, error) {
-	result, err := readtable.ReadTableData(t, []readtable.Column{
-		{
-			ColimnName: "ticket_no",
-			ColumnType: readtable.Int,
-		},
-		{
-			ColimnName: "bus_no",
-			ColumnType: readtable.Int,
-		},
-		{
-			ColimnName: "trip_id",
-			ColumnType: readtable.Int,
-		},
-		{
-			ColimnName: "status",
-			ColumnType: readtable.String,
-		},
-	})
-	if err != nil {
-		return ctx, err
-	}
-
-	var tickets []model.Ticket
-
-	err = mapstructure.Decode(result, &tickets)
-	if err != nil {
-		return ctx, err
-	}
+func aFreeTicket(ctx context.Context) (context.Context, error) {
 	mockqueries = &MockQueries{
 		Tkt: db.Ticket{
-			TripID: tickets[0].TripID,
-			BusNo:  tickets[0].TicketNo,
-			Status: sql.NullString{
-				String: tickets[0].Status,
-				Valid:  true,
-			},
-			TicketNo: tickets[0].TicketNo,
+			ID:       uuid.NewString(),
+			TripID:   21,
+			BusNo:    2321,
+			Status:   string(constant.Free),
+			TicketNo: 23,
 		},
 	}
-	var dbQueriesKey contextKey = "key"
+
+	var dbQueriesKey contextKey = "ticket-data"
 	ctx = context.WithValue(ctx, dbQueriesKey, mockqueries)
 
 	return ctx, nil
@@ -125,7 +91,7 @@ func aFreeTicket(ctx context.Context, t *godog.Table) (context.Context, error) {
 
 func checkoutSessionRequestShouldBeSent(ctx context.Context) error {
 
-	count := ctx.Value(contextKey("countKey")).(int)
+	count := ctx.Value(contextKey("count-key")).(int)
 	if count != 1 {
 		return fmt.Errorf("checkout session not created")
 	}
@@ -133,63 +99,58 @@ func checkoutSessionRequestShouldBeSent(ctx context.Context) error {
 }
 
 func theTicketStatusShouldBe(arg1 string) error {
-	if mockqueries.Tkt.Status.String != arg1 {
-		return fmt.Errorf("tickets status not updated want %s: got: %s", arg1, mockqueries.Tkt.Status.String)
+	if mockqueries.Tkt.Status != arg1 {
+		return fmt.Errorf("tickets status not updated want %s: got: %s", arg1, mockqueries.Tkt.Status)
 	}
 	return nil
 }
 
-func userRequestsToReserveTicket(ctx context.Context, arg1 *godog.Table) (context.Context, error) {
-	result, err := readtable.ReadTableData(arg1, []readtable.Column{
-		{
-			ColimnName: "ticket_no",
-			ColumnType: readtable.Int,
-		},
-		{
-			ColimnName: "bus_no",
-			ColumnType: readtable.Int,
-		},
-		{
-			ColimnName: "trip_id",
-			ColumnType: readtable.Int,
-		},
-	})
-	if err != nil {
-		return ctx, err
-	}
+func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 
-	var tickets []model.Ticket
-
-	err = mapstructure.Decode(result, &tickets)
-	if err != nil {
-		return ctx, err
-	}
-	mqueries, ok := ctx.Value(contextKey("key")).(*MockQueries)
+	mqueries, ok := ctx.Value(contextKey("ticket-data")).(*MockQueries)
 	if !ok {
 		return ctx, fmt.Errorf("no value found in context")
 	}
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	store := sticket.Init(logger, mqueries)
 
-	url := ctx.Value(contextKey("serverURLKey")).(string)
+	url := ctx.Value(contextKey("server-url-key")).(string)
 	mpg := paymentintegration.Init(logger, url)
 
 	moduleTicket := Init(slog.New(slog.NewJSONHandler(os.Stdout, nil)), store, mpg)
-	_, err = moduleTicket.ReserveTicket(ctx, tickets[0].TicketNo, tickets[0].TripID, tickets[0].BusNo)
+	_, err := moduleTicket.ReserveTicket(ctx, model.ReserveTicketRequest{ID: mqueries.Tkt.ID})
 	if err != nil {
 		return ctx, err
 	}
-	var countKey contextKey = "countKey"
+	var countKey contextKey = "count-key"
 	ctx = context.WithValue(ctx, countKey, CallCount)
 	return ctx, nil
 }
 
-func reserveFreeticket(sc *godog.ScenarioContext) {
+func checkoutSessionShouldBeStored() error {
+	return nil
+}
+
+func createCheckoutSessionSucceedsForReservingTicketRequest() error {
+	return nil
+}
+
+func theUserShouldGetCheckoutUrl() error {
+	return nil
+}
+
+func CheckoutSessionSuccessScenario(ctx *godog.ScenarioContext) {
+	ctx.Step(`^checkout session should be stored$`, checkoutSessionShouldBeStored)
+	ctx.Step(`^create checkout session succeeds for reserving ticket request$`, createCheckoutSessionSucceedsForReservingTicketRequest)
+	ctx.Step(`^the user should get checkout url$`, theUserShouldGetCheckoutUrl)
+}
+
+func ReserveFreeticketScenario(sc *godog.ScenarioContext) {
 	sc.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			CallCount++
 		}))
-		var serverKey contextKey = "serverURLKey"
+		var serverKey contextKey = "server-url-key"
 		ctx = context.WithValue(ctx, serverKey, server.URL)
 		return ctx, nil
 	})

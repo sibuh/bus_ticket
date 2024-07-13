@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"event_ticket/internal/constant"
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 	"event_ticket/internal/storage"
@@ -23,11 +24,10 @@ func Init(logger *slog.Logger, db db.Querier) storage.Ticket {
 		db:     db,
 	}
 }
-func (t *ticket) HoldTicket(ctx context.Context, ticketNo, tripId, busNo int32) (model.Ticket, error) {
+func (t *ticket) HoldTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Ticket, error) {
 	tkt, err := t.db.UpdateTicketStatus(ctx, db.UpdateTicketStatusParams{
-		TicketNo: ticketNo,
-		BusNo:    busNo,
-		TripID:   tripId,
+		ID:     req.ID,
+		Status: string(constant.Onhold),
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -49,10 +49,10 @@ func (t *ticket) HoldTicket(ctx context.Context, ticketNo, tripId, busNo int32) 
 		TripID:   tkt.TripID,
 		BusNo:    tkt.BusNo,
 		TicketNo: tkt.TicketNo,
-		Status:   tkt.Status.String,
+		Status:   tkt.Status,
 	}, nil
 }
-func (t *ticket) GetTicket(tktNo, tripId int32) (model.Ticket, error) {
+func (t *ticket) GetTicket(id string) (model.Ticket, error) {
 	return model.Ticket{}, nil
 }
 func (t *ticket) UnholdTicket(tktNo, tripID int32) (model.Ticket, error) {

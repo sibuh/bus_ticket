@@ -34,10 +34,11 @@ type Payment struct {
 }
 
 type Ticket struct {
+	ID 		string
 	TripID   int32
 	BusNo    int32
 	TicketNo int32
-	Status   sql.NullString
+	Status   string
 }
 
 type User struct {

@@ -22,7 +22,7 @@ type Payment interface {
 }
 
 type Ticket interface {
-	HoldTicket(ctx context.Context, ticketNo, tripId, busNo int32) (model.Ticket, error)
-	GetTicket(tktNo, tripId int32) (model.Ticket, error)
+	HoldTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Ticket, error)
+	GetTicket(id string) (model.Ticket, error)
 	UnholdTicket(tktNo, tripID int32) (model.Ticket, error)
 }
