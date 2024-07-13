@@ -9,13 +9,13 @@ Feature: Ticket Resevation
       |12        | 779    | 10   |
     Then the ticket status should be "Onhold"
     And checkout session request should be sent
-  # Scenario: checkout session create request responds success
-  #   Given create checkout session succeeds
-  #     | id | ticket number | bus number | time     | url                        |
-  #     |  1 |            12 |         10 | 12-12-20 | "http://localhost.pay.com/ |
-  #   When user requests to reserve ticket
-  #   Then checkout session should be stored
-  #   And the user should get checkout url
+  Scenario: checkout session create request responds success
+   Given a free ticket with id 12sdfg
+    When create checkout session succeeds for reserving ticket request
+      | id | ticket number | bus number | time     | url                        |
+      |  1 |            12 |         10 | 12-12-20 | "http://localhost.pay.com/ |
+    Then checkout session should be stored
+    And the user should get checkout url
   # Scenario: checkout session create request fails
   #   Given create checkout session request is failing # createCheckoutSession() => error
   #   When user requested to reserve ticket
