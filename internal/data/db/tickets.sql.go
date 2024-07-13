@@ -29,3 +29,7 @@ func (q *Queries) UpdateTicketStatus(ctx context.Context, arg UpdateTicketStatus
 	)
 	return i, err
 }
+
+func(q *Queries)GetTicket(ctx context.Context,id string)(Ticket,error){
+	return Ticket{},nil
+}

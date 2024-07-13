@@ -28,11 +28,11 @@ type MockQueries struct {
 }
 
 func (m *MockQueries) UpdateTicketStatus(ctx context.Context, arg db.UpdateTicketStatusParams) (db.Ticket, error) {
-	m.Tkt = db.Ticket{
-		ID:     arg.ID,
-		Status: arg.Status,
-	}
+	m.Tkt.Status = arg.Status
 
+	return m.Tkt, nil
+}
+func (m *MockQueries) GetTicket(ctx context.Context, id string) (db.Ticket, error) {
 	return m.Tkt, nil
 }
 
@@ -117,7 +117,7 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 	url := ctx.Value(contextKey("server-url-key")).(string)
 	mpg := paymentintegration.Init(logger, url)
 
-	moduleTicket := Init(slog.New(slog.NewJSONHandler(os.Stdout, nil)), store, mpg)
+	moduleTicket := Init(logger, store, mpg)
 	_, err := moduleTicket.ReserveTicket(ctx, model.ReserveTicketRequest{ID: mqueries.Tkt.ID})
 	if err != nil {
 		return ctx, err
@@ -127,12 +127,25 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 	return ctx, nil
 }
 
-func checkoutSessionShouldBeStored() error {
+func checkoutSessionShouldBeStored(ctx context.Context) error {
 	return nil
 }
 
-func createCheckoutSessionSucceedsForReservingTicketRequest() error {
-	return nil
+func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context) (context.Context, error) {
+	queries := ctx.Value("ticket-data").(*MockQueries)
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	store := sticket.Init(logger, queries)
+	url := ctx.Value("session-url-key").(string)
+	platform := paymentintegration.Init(logger, url)
+	mod := Init(logger, store, platform)
+	session, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID})
+	if err != nil {
+		return nil, err
+	}
+	var sessionKey contextKey = "session-key"
+	ctx = context.WithValue(ctx, sessionKey, session)
+	return ctx, nil
 }
 
 func theUserShouldGetCheckoutUrl() error {

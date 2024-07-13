@@ -17,6 +17,7 @@ type Querier interface {
 	GetUser(ctx context.Context, username string) (User, error)
 	RecordPayment(ctx context.Context, arg RecordPaymentParams) (Payment, error)
 	UpdateTicketStatus(ctx context.Context, arg UpdateTicketStatusParams) (Ticket, error)
+	GetTicket(ctx context.Context,id string)(Ticket,error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -52,8 +52,32 @@ func (t *ticket) HoldTicket(ctx context.Context, req model.ReserveTicketRequest)
 		Status:   tkt.Status,
 	}, nil
 }
-func (t *ticket) GetTicket(id string) (model.Ticket, error) {
-	return model.Ticket{}, nil
+func (t *ticket) GetTicket(ctx context.Context, id string) (model.Ticket, error) {
+	tkt, err := t.db.GetTicket(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			newError := model.Error{
+				ErrCode:   http.StatusNotFound,
+				Message:   "the requested ticket is not found",
+				RootError: err,
+			}
+			return model.Ticket{}, &newError
+		}
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to get ticket",
+			RootError: err,
+		}
+		return model.Ticket{}, &newError
+	}
+
+	return model.Ticket{
+		ID:       tkt.ID,
+		TripID:   tkt.TripID,
+		TicketNo: tkt.TicketNo,
+		BusNo:    tkt.BusNo,
+		Status:   tkt.Status,
+	}, nil
 }
 func (t *ticket) UnholdTicket(tktNo, tripID int32) (model.Ticket, error) {
 	return model.Ticket{}, nil
