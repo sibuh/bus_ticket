@@ -128,6 +128,7 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 }
 
 func checkoutSessionShouldBeStored(ctx context.Context) error {
+
 	return nil
 }
 
@@ -148,11 +149,27 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 	return ctx, nil
 }
 
-func theUserShouldGetCheckoutUrl() error {
+func theUserShouldGetCheckoutUrl(ctx context.Context) error {
+	session := ctx.Value(contextKey("session-key")).(model.Session)
+	if session.PaymentUrl == "" {
+		return fmt.Errorf("no payment url is returned ")
+	}
+
 	return nil
 }
 
 func CheckoutSessionSuccessScenario(ctx *godog.ScenarioContext) {
+	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"id":"some_id","tkt":{"id":"56789jh","ticket_no":12,"bus_no":23,"trip_id":12} 
+			"payment_status":"success","payment_url":"http://payment.com/session_id","cancel_url":"totalAmount":644`))
+
+		}))
+		var serverKey = "server-url-key"
+		ctx = context.WithValue(ctx, serverKey, server.URL)
+		return ctx, nil
+	})
 	ctx.Step(`^checkout session should be stored$`, checkoutSessionShouldBeStored)
 	ctx.Step(`^create checkout session succeeds for reserving ticket request$`, createCheckoutSessionSucceedsForReservingTicketRequest)
 	ctx.Step(`^the user should get checkout url$`, theUserShouldGetCheckoutUrl)
