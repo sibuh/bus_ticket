@@ -69,7 +69,7 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 		}
 		return model.Session{}, &newError
 	}
-	t.platform.CreateCheckoutSession(tkt)
+	session, err := t.platform.CreateCheckoutSession(tkt)
 	// if err != nil {
 	// 	//unhold ticket if create checkout session fails
 	// 	_, err = t.storageTicket.UnholdTicket(tktNo, tripId)
@@ -113,5 +113,5 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 	// 	}(tktNo, tripId, t.log)
 	// },
 	// )
-	return model.Session{}, nil
+	return session, err
 }
