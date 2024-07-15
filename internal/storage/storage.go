@@ -26,3 +26,6 @@ type Ticket interface {
 	GetTicket(ctx context.Context, id string) (model.Ticket, error)
 	UnholdTicket(tktNo, tripID int32) (model.Ticket, error)
 }
+type Session interface {
+	StoreCheckoutSession(ctx context.Context, sess model.Session) (model.Session, error)
+}

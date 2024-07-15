@@ -15,6 +15,7 @@ type ticket struct {
 	log           *slog.Logger
 	storageTicket storage.Ticket
 	platform      platform.PaymentGatewayIntegrator
+	session       storage.Session
 }
 
 type TicketStatus string
@@ -25,11 +26,12 @@ const (
 	Onhold   TicketStatus = "Onhold"
 )
 
-func Init(log *slog.Logger, tkt storage.Ticket, platform platform.PaymentGatewayIntegrator) module.Ticket {
+func Init(log *slog.Logger, tkt storage.Ticket, platform platform.PaymentGatewayIntegrator, ssn storage.Session) module.Ticket {
 	return &ticket{
 		log:           log,
 		storageTicket: tkt,
 		platform:      platform,
+		session:       ssn,
 	}
 }
 

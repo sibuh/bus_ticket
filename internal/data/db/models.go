@@ -53,3 +53,13 @@ type User struct {
 	UpdatedAt sql.NullTime
 	DeletedAt sql.NullTime
 }
+
+type Session struct{
+	ID string
+	TicketID string
+	PaymentStatus string
+	PaymentURL string
+	CancelURl string
+	Amount float64
+	CreatedAt time.Time
+}

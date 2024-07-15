@@ -7,6 +7,7 @@ import (
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 	paymentintegration "event_ticket/internal/platform/payment_integration"
+	"event_ticket/internal/storage/session"
 	sticket "event_ticket/internal/storage/ticket"
 	"net/http"
 	"net/http/httptest"
@@ -27,6 +28,7 @@ type contextKey string
 type MockQueries struct {
 	db.Querier
 	Tkt db.Ticket
+	Ssn db.Session
 }
 
 func (m *MockQueries) UpdateTicketStatus(ctx context.Context, arg db.UpdateTicketStatusParams) (db.Ticket, error) {
@@ -37,29 +39,14 @@ func (m *MockQueries) UpdateTicketStatus(ctx context.Context, arg db.UpdateTicke
 func (m *MockQueries) GetTicket(ctx context.Context, id string) (db.Ticket, error) {
 	return m.Tkt, nil
 }
+func (m *MockQueries) StoreCheckoutSession(ctx context.Context, arg db.StoreCheckoutSessionParams) (db.Session, error) {
+	return m.Ssn, nil
+}
 
 var mockqueries *MockQueries
 var CallCount = 0
 
 func TestReserveTicket(t *testing.T) {
-	// testCases := []struct {
-	// 	Name                string
-	// 	ScenarioInitializer func(sc *godog.ScenarioContext)
-	// 	FeatureFilepath     string
-	// }{
-	// 	{
-	// 		Name:                "user requests to reserve free ticket",
-	// 		ScenarioInitializer: ReserveFreeticketScenario,
-	// 		FeatureFilepath:     "reserve.feature",
-	// 	},
-	// 	{
-	// 		Name:                "checkout session is created successfully",
-	// 		ScenarioInitializer: CheckoutSessionSuccessScenario,
-	// 		FeatureFilepath:     "checkout_session_created.feature",
-	// 	},
-	// }
-	// for _, tc := range testCases {
-	// 	t.Run(tc.Name, func(t *testing.T) {
 	result := godog.TestSuite{
 		Name:                 "reserve ticket",
 		TestSuiteInitializer: nil,
@@ -73,9 +60,6 @@ func TestReserveTicket(t *testing.T) {
 	if result != 0 {
 		t.Errorf("test failed")
 	}
-	// 	})
-	// }
-
 }
 
 func aFreeTicket(ctx context.Context) (context.Context, error) {
@@ -128,8 +112,8 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 		w.Write(b)
 	})).URL
 	mpg := paymentintegration.Init(logger, url)
-
-	moduleTicket := Init(logger, store, mpg)
+	ssn := session.Init(logger, mqueries)
+	moduleTicket := Init(logger, store, mpg, ssn)
 	_, err := moduleTicket.ReserveTicket(ctx, model.ReserveTicketRequest{ID: mqueries.Tkt.ID})
 	if err != nil {
 		return ctx, err
@@ -149,21 +133,17 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	store := sticket.Init(logger, queries)
+	ssn := session.Init(logger, queries)
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		b, _ := json.Marshal(model.Session{
-			ID: uuid.NewString(),
-			Tkt: model.Ticket{
-				ID:       uuid.NewString(),
-				BusNo:    123,
-				TicketNo: 456,
-				TripID:   324,
-				Status:   string(constant.Onhold),
-			},
+			ID:            uuid.NewString(),
+			TicketID:      uuid.NewString(),
 			PaymentStatus: string(constant.Pending),
-			PaymentUrl:    "http://payment/session_id",
-			CancelUrl:     "http://cancel_url",
-			TotalAmount:   400,
+			PaymentURL:    "http://payment/session_id",
+			CancelURL:     "http://cancel_url",
+			Amount:        400,
 			CreatedAt:     time.Now(),
 		})
 
@@ -171,7 +151,7 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 	}))
 	url := server.URL
 	platform := paymentintegration.Init(logger, url)
-	mod := Init(logger, store, platform)
+	mod := Init(logger, store, platform, ssn)
 	session, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID})
 	if err != nil {
 		return nil, err
@@ -183,30 +163,14 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 
 func theUserShouldGetCheckoutUrl(ctx context.Context) error {
 	session := ctx.Value(contextKey("session-key")).(model.Session)
-	if session.PaymentUrl == "" {
+	if session.PaymentURL == "" {
 		return fmt.Errorf("no payment url is returned ")
 	}
 
 	return nil
 }
 
-// func CheckoutSessionSuccessScenario(ctx *godog.ScenarioContext) {
-// 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-
-// 		var serverKey contextKey = "server-url-key"
-// 		ctx = context.WithValue(ctx, serverKey, server.URL)
-// 		return ctx, nil
-// 	})
-
-// }
-
 func ReserveFreeticketScenario(sc *godog.ScenarioContext) {
-	// sc.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-
-	// 	var serverKey contextKey = "server-url-key"
-	// 	ctx = context.WithValue(ctx, serverKey, server.URL)
-	// 	return ctx, nil
-	// })
 	sc.Step(`^a free ticket$`, aFreeTicket)
 	sc.Step(`^user requests to reserve ticket$`, userRequestsToReserveTicket)
 	sc.Step(`^the ticket status should be "([^"]*)"$`, theTicketStatusShouldBe)

@@ -6,6 +6,7 @@ import (
 	"event_ticket/internal/handler/ticket"
 	mtkt "event_ticket/internal/module/ticket"
 	paymentintegration "event_ticket/internal/platform/payment_integration"
+	"event_ticket/internal/storage/session"
 	stkt "event_ticket/internal/storage/ticket"
 
 	spmt "event_ticket/internal/storage/payment"
@@ -54,7 +55,11 @@ func Initiate() {
 		),
 		storage.event,
 		mpayment.Init(logger, storage.event),
-		mtkt.Init(logger, stkt.Init(logger, queries), paymentintegration.Init(logger, viper.GetString("payment.url"))),
+		mtkt.Init(
+			logger,
+			stkt.Init(logger, queries),
+			paymentintegration.Init(logger, viper.GetString("payment.url")),
+			session.Init(logger, queries)),
 	)
 	err := godotenv.Load()
 	if err != nil {
