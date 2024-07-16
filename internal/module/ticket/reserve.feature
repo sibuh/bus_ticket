@@ -10,13 +10,11 @@ Feature: Ticket Resevation
    When create checkout session succeeds for reserving ticket request
    Then checkout session should be stored
    And the user should get checkout url
-  # Scenario: checkout session create request fails
-  #   Given create checkout session request is failing # createCheckoutSession() => error
-  #   When user requested to reserve ticket
-  #     | no | busNo | trip |
-  #     | 12 |    10 |  779 |
-  #   Then user should get error message "failed to create checkout session"
-  #   And the ticket status should be "Free"
+  Scenario: checkout session create request fails
+    Given a free ticket
+    When checkout session creation fails during reserve ticket request
+    Then user should get error message "failed to create checkout session"
+    And the ticket status should be "Free"
   # Scenario: user tries to reserve already held ticket
   #   Given ticket number 12 of bus number 10 for trip of id 778 is "Onhold"
   #   When user requests to reserve ticket number 12 of trip 778

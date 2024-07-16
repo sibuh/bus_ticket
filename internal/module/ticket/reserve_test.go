@@ -54,6 +54,7 @@ func (m *MockQueries) StoreCheckoutSession(ctx context.Context, arg db.StoreChec
 
 var mockqueries *MockQueries
 var CallCount = 0
+var logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 func TestReserveTicket(t *testing.T) {
 	result := godog.TestSuite{
@@ -110,7 +111,7 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 	if !ok {
 		return ctx, fmt.Errorf("no value found in context")
 	}
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	store := sticket.Init(logger, mqueries)
 
 	url := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -188,6 +189,32 @@ func theUserShouldGetCheckoutUrl(ctx context.Context) error {
 
 	return nil
 }
+func checkoutSessionCreationFailsDuringReserveTicketRequest(ctx context.Context) (context.Context, error) {
+	queries := ctx.Value(contextKey("ticket-data")).(*MockQueries)
+	store := sticket.Init(logger, queries)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	platform := paymentintegration.Init(logger, server.URL)
+	session := session.Init(logger, queries)
+	mod := Init(logger, store, platform, session)
+	_, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID, Status: string(constant.Onhold)})
+	if err == nil {
+		return ctx, fmt.Errorf("expected non-nil error but did not get any error")
+	}
+	var errorKey contextKey = "error-key"
+	ctx = context.WithValue(ctx, errorKey, err)
+	return ctx, nil
+}
+
+func userShouldGetErrorMessage(ctx context.Context, arg1 string) error {
+	err := ctx.Value(contextKey("error-key")).(error)
+	if arg1 != err.Error() {
+		return fmt.Errorf("expected: %s got: %s", arg1, err.Error())
+	}
+
+	return nil
+}
 
 func ReserveFreeticketScenario(sc *godog.ScenarioContext) {
 	sc.Step(`^a free ticket$`, aFreeTicket)
@@ -198,4 +225,7 @@ func ReserveFreeticketScenario(sc *godog.ScenarioContext) {
 	sc.Step(`^create checkout session succeeds for reserving ticket request$`,
 		createCheckoutSessionSucceedsForReservingTicketRequest)
 	sc.Step(`^the user should get checkout url$`, theUserShouldGetCheckoutUrl)
+	sc.Step(`^checkout session creation fails during reserve ticket request$`,
+		checkoutSessionCreationFailsDuringReserveTicketRequest)
+	sc.Step(`^user should get error message "([^"]*)"$`, userShouldGetErrorMessage)
 }

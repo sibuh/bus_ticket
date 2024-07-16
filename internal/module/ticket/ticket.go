@@ -72,8 +72,28 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 		t.log.Error(newError.Error(), newError)
 		return model.Session{}, &newError
 	}
-	session, _ := t.platform.CreateCheckoutSession(tkt)
+	session, err := t.platform.CreateCheckoutSession(tkt)
+	if err != nil {
+		//unhold ticket if create checkout session fails
+		_, err = t.storageTicket.UnholdTicket(tkt.ID)
+		if err != nil {
+			newError := model.Error{
+				ErrCode:   http.StatusInternalServerError,
+				Message:   "failed to unhold ticket",
+				RootError: err,
+			}
+			t.log.Error("failed to unhold ticket when creating checkout session fails", newError)
+		}
 
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to create checkout session",
+			RootError: err,
+		}
+
+		t.log.Error("failed to create checkout session", newError)
+		return model.Session{}, &newError
+	}
 	storedSession, err := t.session.StoreCheckoutSession(ctx, session)
 	if err != nil {
 		newError := model.Error{
@@ -84,27 +104,6 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 		t.log.Error(newError.Error(), newError)
 		return model.Session{}, &newError
 	}
-	// if err != nil {
-	// 	//unhold ticket if create checkout session fails
-	// 	_, err = t.storageTicket.UnholdTicket(tktNo, tripId)
-	// 	if err != nil {
-	// 		newError := model.Error{
-	// 			ErrCode:   http.StatusInternalServerError,
-	// 			Message:   "failed to unhold ticket",
-	// 			RootError: err,
-	// 		}
-	// 		t.log.Error("failed to unhold ticket when creating checkout session fails", newError)
-	// 	}
-
-	// 	newError := model.Error{
-	// 		ErrCode:   http.StatusInternalServerError,
-	// 		Message:   "failed to create checkout session",
-	// 		RootError: err,
-	// 	}
-
-	// 	t.log.Error("failed to create checkout session", newError)
-	// 	return model.Session{}, &newError
-	// }
 
 	// // SERVIER.ON('INIT, HANDLESERVERINIT)
 	// // READ FROM DATABASE PENDING STATUS CHECKOUT SESSION `[]SESSION`
