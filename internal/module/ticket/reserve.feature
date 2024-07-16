@@ -7,9 +7,9 @@ Feature: Ticket Resevation
     And checkout session request should be sent
   Scenario: checkout session create request responds success
    Given a free ticket
-    When create checkout session succeeds for reserving ticket request
-    Then checkout session should be stored
-    And the user should get checkout url
+   When create checkout session succeeds for reserving ticket request
+   Then checkout session should be stored
+   And the user should get checkout url
   # Scenario: checkout session create request fails
   #   Given create checkout session request is failing # createCheckoutSession() => error
   #   When user requested to reserve ticket

@@ -15,6 +15,7 @@ type ticket struct {
 	log           *slog.Logger
 	storageTicket storage.Ticket
 	platform      platform.PaymentGatewayIntegrator
+	session       storage.Session
 }
 
 type TicketStatus string
@@ -25,11 +26,12 @@ const (
 	Onhold   TicketStatus = "Onhold"
 )
 
-func Init(log *slog.Logger, tkt storage.Ticket, platform platform.PaymentGatewayIntegrator) module.Ticket {
+func Init(log *slog.Logger, tkt storage.Ticket, platform platform.PaymentGatewayIntegrator, ssn storage.Session) module.Ticket {
 	return &ticket{
 		log:           log,
 		storageTicket: tkt,
 		platform:      platform,
+		session:       ssn,
 	}
 }
 
@@ -67,9 +69,21 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 			Message:   "ticket is not held successfully",
 			RootError: nil,
 		}
+		t.log.Error(newError.Error(), newError)
 		return model.Session{}, &newError
 	}
-	t.platform.CreateCheckoutSession(tkt)
+	session, _ := t.platform.CreateCheckoutSession(tkt)
+
+	storedSession, err := t.session.StoreCheckoutSession(ctx, session)
+	if err != nil {
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to store checkout session",
+			RootError: err,
+		}
+		t.log.Error(newError.Error(), newError)
+		return model.Session{}, &newError
+	}
 	// if err != nil {
 	// 	//unhold ticket if create checkout session fails
 	// 	_, err = t.storageTicket.UnholdTicket(tktNo, tripId)
@@ -113,5 +127,5 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 	// 	}(tktNo, tripId, t.log)
 	// },
 	// )
-	return model.Session{}, nil
+	return storedSession, err
 }

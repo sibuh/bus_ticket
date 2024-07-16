@@ -174,10 +174,10 @@ type ReserveTicketRequest struct {
 
 type Session struct {
 	ID            string    `json:"id"`
-	Tkt           Ticket    `json:"tkt"`
+	TicketID      string    `json:"ticket_id"`
 	PaymentStatus string    `json:"payment_status"`
-	PaymentUrl    string    `json:"paymentUrl"`
-	CancelUrl     string    `json:"cancelUrl"`
-	TotalAmount   float64   `json:"totalAmount"`
+	PaymentURL    string    `json:"payment_url"`
+	CancelURL     string    `json:"cancel_url"`
+	Amount        float64   `json:"totalAmount"`
 	CreatedAt     time.Time `json:"created_at"`
 }
