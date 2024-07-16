@@ -72,13 +72,13 @@ func TestReserveTicket(t *testing.T) {
 	}
 }
 
-func aFreeTicket(ctx context.Context) (context.Context, error) {
+func aTicket(ctx context.Context, arg1 string) (context.Context, error) {
 	mockqueries = &MockQueries{
 		Tkt: db.Ticket{
 			ID:       uuid.NewString(),
 			TripID:   21,
 			BusNo:    2321,
-			Status:   string(constant.Free),
+			Status:   arg1,
 			TicketNo: 23,
 		},
 	}
@@ -124,9 +124,11 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 	mpg := paymentintegration.Init(logger, url)
 	ssn := session.Init(logger, mqueries)
 	moduleTicket := Init(logger, store, mpg, ssn)
-	_, err := moduleTicket.ReserveTicket(ctx, model.ReserveTicketRequest{ID: mqueries.Tkt.ID})
+	_, err := moduleTicket.ReserveTicket(ctx, model.ReserveTicketRequest{ID: mqueries.Tkt.ID}, func() {})
 	if err != nil {
-		return ctx, err
+		var errorKey contextKey = "error-key"
+		ctx = context.WithValue(ctx, errorKey, err)
+		return ctx, nil
 	}
 	var countKey contextKey = "count-key"
 	ctx = context.WithValue(ctx, countKey, CallCount)
@@ -172,12 +174,16 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 	url := server.URL
 	platform := paymentintegration.Init(logger, url)
 	mod := Init(logger, store, platform, ssn)
-	session, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID})
+	var SchedulerCount int = 0
+
+	session, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID}, func() { SchedulerCount++ })
 	if err != nil {
 		return nil, err
 	}
 	var sessionKey contextKey = "session-key"
 	ctx = context.WithValue(ctx, sessionKey, session)
+	var scheduleKey contextKey = "schedule-key"
+	ctx = context.WithValue(ctx, scheduleKey, SchedulerCount)
 	return ctx, nil
 }
 
@@ -198,7 +204,9 @@ func checkoutSessionCreationFailsDuringReserveTicketRequest(ctx context.Context)
 	platform := paymentintegration.Init(logger, server.URL)
 	session := session.Init(logger, queries)
 	mod := Init(logger, store, platform, session)
-	_, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID, Status: string(constant.Onhold)})
+
+	_, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID, Status: string(constant.Onhold)}, func() {
+	})
 	if err == nil {
 		return ctx, fmt.Errorf("expected non-nil error but did not get any error")
 	}
@@ -215,9 +223,20 @@ func userShouldGetErrorMessage(ctx context.Context, arg1 string) error {
 
 	return nil
 }
+func onholdtimeoutProcessShouldBeScheduled(ctx context.Context) error {
+	count, ok := ctx.Value(contextKey("schedule-key")).(int)
+	if !ok {
+		return fmt.Errorf("failed to get value from context")
+	}
+	if count != 1 {
+		return fmt.Errorf("scheduler not called")
+	}
+
+	return nil
+}
 
 func ReserveFreeticketScenario(sc *godog.ScenarioContext) {
-	sc.Step(`^a free ticket$`, aFreeTicket)
+	sc.Step(`^a "([^"]*)" ticket$`, aTicket)
 	sc.Step(`^user requests to reserve ticket$`, userRequestsToReserveTicket)
 	sc.Step(`^the ticket status should be "([^"]*)"$`, theTicketStatusShouldBe)
 	sc.Step(`^checkout session request should be sent$`, checkoutSessionRequestShouldBeSent)
@@ -228,4 +247,5 @@ func ReserveFreeticketScenario(sc *godog.ScenarioContext) {
 	sc.Step(`^checkout session creation fails during reserve ticket request$`,
 		checkoutSessionCreationFailsDuringReserveTicketRequest)
 	sc.Step(`^user should get error message "([^"]*)"$`, userShouldGetErrorMessage)
+	sc.Step(`^onhold-timeout process should be scheduled$`, onholdtimeoutProcessShouldBeScheduled)
 }

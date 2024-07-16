@@ -6,7 +6,7 @@ import (
 )
 
 type Ticket interface {
-	ReserveTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Session, error)
+	ReserveTicket(ctx context.Context, req model.ReserveTicketRequest, scheduler func()) (model.Session, error)
 }
 
 type User interface {
