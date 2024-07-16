@@ -24,7 +24,8 @@ func Init(logger *slog.Logger, db db.Querier) storage.Session {
 func (s *session) StoreCheckoutSession(ctx context.Context, sess model.Session) (model.Session, error) {
 
 	ssn, err := s.db.StoreCheckoutSession(ctx, db.StoreCheckoutSessionParams{
-		TicketID:      sess.ID,
+		ID:            sess.ID,
+		TicketID:      sess.TicketID,
 		PaymentStatus: sess.PaymentStatus,
 		PaymentURL:    sess.PaymentURL,
 		CancelURL:     sess.CancelURL,

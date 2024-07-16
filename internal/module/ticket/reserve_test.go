@@ -40,6 +40,15 @@ func (m *MockQueries) GetTicket(ctx context.Context, id string) (db.Ticket, erro
 	return m.Tkt, nil
 }
 func (m *MockQueries) StoreCheckoutSession(ctx context.Context, arg db.StoreCheckoutSessionParams) (db.Session, error) {
+	m.Ssn = db.Session{
+		ID:            arg.ID,
+		TicketID:      arg.TicketID,
+		PaymentStatus: arg.PaymentStatus,
+		PaymentURL:    arg.PaymentURL,
+		CancelURl:     arg.CancelURL,
+		Amount:        arg.Amount,
+		CreatedAt:     arg.CreatedAt,
+	}
 	return m.Ssn, nil
 }
 
@@ -124,7 +133,17 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 }
 
 func checkoutSessionShouldBeStored(ctx context.Context) error {
-	fmt.Println("session not stored yet")
+	session, ok := ctx.Value(contextKey("session-key")).(model.Session)
+	if !ok {
+		return fmt.Errorf("could not find session data from context")
+	}
+	if session.PaymentURL == "" {
+		return fmt.Errorf("payment url is empty")
+	}
+	var queries = *mockqueries
+	if queries.Ssn.PaymentURL != session.PaymentURL {
+		return fmt.Errorf("paymentURL not updated want:%s got:%s", session.PaymentURL, queries.Ssn.PaymentURL)
+	}
 	return nil
 }
 
@@ -175,8 +194,8 @@ func ReserveFreeticketScenario(sc *godog.ScenarioContext) {
 	sc.Step(`^user requests to reserve ticket$`, userRequestsToReserveTicket)
 	sc.Step(`^the ticket status should be "([^"]*)"$`, theTicketStatusShouldBe)
 	sc.Step(`^checkout session request should be sent$`, checkoutSessionRequestShouldBeSent)
-	sc.Step(`^a free ticket$`, aFreeTicket)
 	sc.Step(`^checkout session should be stored$`, checkoutSessionShouldBeStored)
-	sc.Step(`^create checkout session succeeds for reserving ticket request$`, createCheckoutSessionSucceedsForReservingTicketRequest)
+	sc.Step(`^create checkout session succeeds for reserving ticket request$`,
+		createCheckoutSessionSucceedsForReservingTicketRequest)
 	sc.Step(`^the user should get checkout url$`, theUserShouldGetCheckoutUrl)
 }

@@ -69,9 +69,21 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 			Message:   "ticket is not held successfully",
 			RootError: nil,
 		}
+		t.log.Error(newError.Error(), newError)
 		return model.Session{}, &newError
 	}
-	session, err := t.platform.CreateCheckoutSession(tkt)
+	session, _ := t.platform.CreateCheckoutSession(tkt)
+
+	storedSession, err := t.session.StoreCheckoutSession(ctx, session)
+	if err != nil {
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to store checkout session",
+			RootError: err,
+		}
+		t.log.Error(newError.Error(), newError)
+		return model.Session{}, &newError
+	}
 	// if err != nil {
 	// 	//unhold ticket if create checkout session fails
 	// 	_, err = t.storageTicket.UnholdTicket(tktNo, tripId)
@@ -115,5 +127,5 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 	// 	}(tktNo, tripId, t.log)
 	// },
 	// )
-	return session, err
+	return storedSession, err
 }
