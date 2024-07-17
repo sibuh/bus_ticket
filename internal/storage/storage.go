@@ -28,4 +28,5 @@ type Ticket interface {
 }
 type Session interface {
 	StoreCheckoutSession(ctx context.Context, sess model.Session) (model.Session, error)
+	GetTicketStatus(ctx context.Context, sid string) (string, error)
 }

@@ -41,3 +41,23 @@ func (q *Queries) StoreCheckoutSession(ctx context.Context, arg StoreCheckoutSes
 	)
 	return i, err
 }
+
+const getTicketStatus = `-- name: GetCheckoutSession :one 
+	SELECT status FROM tickets t
+	JOIN sessions s ON (t.id=s.ticket_id) 
+	WHERE s.id = $1;
+`
+
+func (q *Queries) GetTicketStatus(ctx context.Context, sid string) (string, error) {
+	row := q.db.QueryRow(ctx, getTicketStatus, sid)
+
+	var i string
+
+	err := row.Scan(
+		&i,
+	)
+	if err != nil {
+		return "", err
+	}
+	return i, nil
+}
