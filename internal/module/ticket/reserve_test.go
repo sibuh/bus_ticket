@@ -52,8 +52,6 @@ func (m *MockQueries) StoreCheckoutSession(ctx context.Context, arg db.StoreChec
 	return m.Ssn, nil
 }
 
-var mockqueries *MockQueries
-var CallCount = 0
 var logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 func TestReserveTicket(t *testing.T) {
@@ -73,7 +71,7 @@ func TestReserveTicket(t *testing.T) {
 }
 
 func aTicket(ctx context.Context, arg1 string) (context.Context, error) {
-	mockqueries = &MockQueries{
+	mockqueries := &MockQueries{
 		Tkt: db.Ticket{
 			ID:       uuid.NewString(),
 			TripID:   21,
@@ -98,14 +96,19 @@ func checkoutSessionRequestShouldBeSent(ctx context.Context) error {
 	return nil
 }
 
-func theTicketStatusShouldBe(arg1 string) error {
-	if mockqueries.Tkt.Status != arg1 {
-		return fmt.Errorf("ticket status not updated want %s: got: %s", arg1, mockqueries.Tkt.Status)
+func theTicketStatusShouldBe(ctx context.Context, arg1 string) error {
+	queries, ok := ctx.Value(contextKey("ticket-data")).(*MockQueries)
+	if !ok {
+		return fmt.Errorf("failed to get ticket from context")
+	}
+	if queries.Tkt.Status != arg1 {
+		return fmt.Errorf("ticket status not updated want %s: got: %s", arg1, queries.Tkt.Status)
 	}
 	return nil
 }
 
 func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
+	var CallCount = 0
 
 	mqueries, ok := ctx.Value(contextKey("ticket-data")).(*MockQueries)
 	if !ok {
@@ -143,7 +146,10 @@ func checkoutSessionShouldBeStored(ctx context.Context) error {
 	if session.PaymentURL == "" {
 		return fmt.Errorf("payment url is empty")
 	}
-	var queries = *mockqueries
+	queries, ok := ctx.Value(contextKey("ticket-data")).(*MockQueries)
+	if !ok {
+		return fmt.Errorf("failed to ticket data from context")
+	}
 	if queries.Ssn.PaymentURL != session.PaymentURL {
 		return fmt.Errorf("paymentURL not updated want:%s got:%s", session.PaymentURL, queries.Ssn.PaymentURL)
 	}

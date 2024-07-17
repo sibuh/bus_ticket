@@ -1,0 +1,10 @@
+type person struct {
+	name string
+}
+
+func (p *person) GetName() {
+}
+func (p person) AddName()    {}
+func (p person) DeleteName() {}
+
+var person *person

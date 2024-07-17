@@ -7,6 +7,7 @@ import (
 	"event_ticket/internal/platform"
 	"event_ticket/internal/storage"
 	"net/http"
+	"time"
 
 	"golang.org/x/exp/slog"
 )
@@ -106,4 +107,17 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 	}
 	scheduler()
 	return storedSession, err
+}
+
+// delay some time
+// read session and payment status
+// if reserved  return
+// else send status request to check status
+// if pending send cancel request
+// if request succeed release ticket
+// else resend cancellation request
+// if status is failed release ticket
+// if status successful reserve ticket
+func (t *ticket) ScheduleOntimeoutProcess(ctx context.Context, delay time.Duration, url string) {
+
 }
