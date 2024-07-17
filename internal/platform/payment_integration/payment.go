@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"event_ticket/internal/model"
 	"event_ticket/internal/platform"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -31,6 +32,9 @@ func (p *paymentGateway) CreateCheckoutSession(ticketInfo model.Ticket) (model.S
 	res, err := http.Post(p.url, "application/json", bytes.NewBuffer(b))
 	if err != nil {
 		return model.Session{}, err
+	}
+	if res.StatusCode != 200 {
+		return model.Session{}, fmt.Errorf("failed to create checkout session")
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {

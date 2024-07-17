@@ -7,6 +7,7 @@ import (
 	"event_ticket/internal/platform"
 	"event_ticket/internal/storage"
 	"net/http"
+	"time"
 
 	"golang.org/x/exp/slog"
 )
@@ -35,7 +36,7 @@ func Init(log *slog.Logger, tkt storage.Ticket, platform platform.PaymentGateway
 	}
 }
 
-func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Session, error) {
+func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketRequest, scheduler func()) (model.Session, error) {
 	tkt, err := t.storageTicket.GetTicket(ctx, req.ID)
 	if err != nil {
 		return model.Session{}, err
@@ -72,8 +73,28 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 		t.log.Error(newError.Error(), newError)
 		return model.Session{}, &newError
 	}
-	session, _ := t.platform.CreateCheckoutSession(tkt)
+	session, err := t.platform.CreateCheckoutSession(tkt)
+	if err != nil {
+		//unhold ticket if create checkout session fails
+		_, err = t.storageTicket.UnholdTicket(tkt.ID)
+		if err != nil {
+			newError := model.Error{
+				ErrCode:   http.StatusInternalServerError,
+				Message:   "failed to unhold ticket",
+				RootError: err,
+			}
+			t.log.Error("failed to unhold ticket when creating checkout session fails", newError)
+		}
 
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to create checkout session",
+			RootError: err,
+		}
+
+		t.log.Error("failed to create checkout session", newError)
+		return model.Session{}, &newError
+	}
 	storedSession, err := t.session.StoreCheckoutSession(ctx, session)
 	if err != nil {
 		newError := model.Error{
@@ -84,48 +105,19 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 		t.log.Error(newError.Error(), newError)
 		return model.Session{}, &newError
 	}
-	// if err != nil {
-	// 	//unhold ticket if create checkout session fails
-	// 	_, err = t.storageTicket.UnholdTicket(tktNo, tripId)
-	// 	if err != nil {
-	// 		newError := model.Error{
-	// 			ErrCode:   http.StatusInternalServerError,
-	// 			Message:   "failed to unhold ticket",
-	// 			RootError: err,
-	// 		}
-	// 		t.log.Error("failed to unhold ticket when creating checkout session fails", newError)
-	// 	}
-
-	// 	newError := model.Error{
-	// 		ErrCode:   http.StatusInternalServerError,
-	// 		Message:   "failed to create checkout session",
-	// 		RootError: err,
-	// 	}
-
-	// 	t.log.Error("failed to create checkout session", newError)
-	// 	return model.Session{}, &newError
-	// }
-
-	// // SERVIER.ON('INIT, HANDLESERVERINIT)
-	// // READ FROM DATABASE PENDING STATUS CHECKOUT SESSION `[]SESSION`
-	// // LOOP TIME.AFTERfUNC(TIME.NOW() - SESSION.TIME)
-	// time.AfterFunc(time.Second, func() {
-	// 	func(tktNo, tripId int32, logger *slog.Logger) {
-	// 		_, err := t.platform.CancelCheckoutSession(ctx, "")
-	// 		if err != nil {
-	// 			newError := model.Error{
-	// 				ErrCode:   http.StatusInternalServerError,
-	// 				Message:   "failed to cancel checkout session",
-	// 				RootError: err,
-	// 			}
-	// 			t.log.Error(newError.Error(), newError.ErrCode)
-	// 		}
-	// 		_, err = t.storageTicket.UnholdTicket(tktNo, tripId)
-	// 		if err != nil {
-	// 			logger.Error("failed to unhold ticket", err)
-	// 		}
-	// 	}(tktNo, tripId, t.log)
-	// },
-	// )
+	scheduler()
 	return storedSession, err
+}
+
+// delay some time
+// read session and payment status
+// if reserved  return
+// else send status request to check status
+// if pending send cancel request
+// if request succeed release ticket
+// else resend cancellation request
+// if status is failed release ticket
+// if status successful reserve ticket
+func (t *ticket) ScheduleOntimeoutProcess(ctx context.Context, delay time.Duration, url string) {
+
 }

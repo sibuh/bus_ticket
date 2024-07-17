@@ -2,9 +2,12 @@ package session
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 	"event_ticket/internal/storage"
+	"fmt"
 	"net/http"
 
 	"golang.org/x/exp/slog"
@@ -51,4 +54,27 @@ func (s *session) StoreCheckoutSession(ctx context.Context, sess model.Session) 
 		Amount:        ssn.Amount,
 		CreatedAt:     ssn.CreatedAt,
 	}, nil
+}
+
+func (s *session) GetTicketStatus(ctx context.Context, sid string) (string, error) {
+	status, err := s.db.GetTicketStatus(ctx, sid)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			newError := model.Error{
+				ErrCode:   http.StatusNotFound,
+				Message:   fmt.Sprintf("session with %s not found", sid),
+				RootError: err,
+			}
+			s.logger.Info(newError.Message, newError)
+			return "", &newError
+		}
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to get requested session",
+			RootError: err,
+		}
+		s.logger.Error(newError.Error(), newError)
+		return "", &newError
+	}
+	return status, nil
 }

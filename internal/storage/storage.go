@@ -24,8 +24,9 @@ type Payment interface {
 type Ticket interface {
 	HoldTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Ticket, error)
 	GetTicket(ctx context.Context, id string) (model.Ticket, error)
-	UnholdTicket(tktNo, tripID int32) (model.Ticket, error)
+	UnholdTicket(ID string) (model.Ticket, error)
 }
 type Session interface {
 	StoreCheckoutSession(ctx context.Context, sess model.Session) (model.Session, error)
+	GetTicketStatus(ctx context.Context, sid string) (string, error)
 }

@@ -79,6 +79,36 @@ func (t *ticket) GetTicket(ctx context.Context, id string) (model.Ticket, error)
 		Status:   tkt.Status,
 	}, nil
 }
-func (t *ticket) UnholdTicket(tktNo, tripID int32) (model.Ticket, error) {
-	return model.Ticket{}, nil
+func (t *ticket) UnholdTicket(ID string) (model.Ticket, error) {
+	tkt, err := t.db.UpdateTicketStatus(context.Background(), db.UpdateTicketStatusParams{
+		ID:     ID,
+		Status: string(constant.Free),
+	})
+	if err != nil {
+
+		if errors.Is(err, sql.ErrNoRows) {
+			newError := model.Error{
+				ErrCode:   http.StatusNotFound,
+				Message:   "ticket to unhold does not exist",
+				RootError: err,
+			}
+			t.logger.Error("ticket to unhold not found", newError)
+			return model.Ticket{}, &newError
+		}
+
+		newError := model.Error{
+			ErrCode:   http.StatusInternalServerError,
+			Message:   "failed to unhold ticket",
+			RootError: err,
+		}
+		t.logger.Error("failed to unhold ticket when checkout session creation fails", newError)
+		return model.Ticket{}, &newError
+	}
+	return model.Ticket{
+		ID:       tkt.ID,
+		TripID:   tkt.TripID,
+		TicketNo: tkt.TicketNo,
+		BusNo:    tkt.BusNo,
+		Status:   tkt.Status,
+	}, nil
 }
