@@ -29,23 +29,3 @@ Feature: Ticket Resevation
     When user requests to reserve ticket
     Then user should get error message "ticket is already reserved please try to reserve free ticket"
 
-
-  # Scenario: payment gateway returned successful purchase status
-  #   Given checkout session is created
-  #     | id | ticket number | bus number | time     |
-  #     |  1 |            12 |         10 | 12-12-20 |
-  #   And payment status is requested for checkout session
-  #   When payment status checkout session returns "successful purchase status" for checkout session
-  #   Then ticket must be set to "Reserved" status
-  # Scenario: payment gateway returned pending purchase status
-  #   Given checkout session is created
-  #     | id | ticket number | bus number | time     |
-  #     |  1 |            12 |         10 | 12-12-20 |
-  #   And payment status is requested for checkout session
-  #   When payment status for checkout session returns "pending"
-  #   Then cancel checkout session is sent to payment gateway
-  # Scenario: payment cancelation successful
-  #   When payment cancelation response is successful
-  #   Then ticket must be set "Free" for sale
-  # Scenario: payment cancelation not successful
-  # # retry

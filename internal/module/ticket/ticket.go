@@ -65,13 +65,9 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 		return model.Session{}, err
 	}
 	if tkt.Status != string(Onhold) {
-		newError := model.Error{
-			ErrCode:   http.StatusInternalServerError,
-			Message:   "ticket is not held successfully",
-			RootError: nil,
-		}
+		newError := model.NewError(http.StatusInternalServerError, "ticket is not held successfully", nil)
 		t.log.Error(newError.Error(), newError)
-		return model.Session{}, &newError
+		return model.Session{}, newError
 	}
 	session, err := t.platform.CreateCheckoutSession(tkt)
 	if err != nil {
