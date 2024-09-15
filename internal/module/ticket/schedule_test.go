@@ -56,30 +56,31 @@ func TestScheduleOntimeoutProcess(t *testing.T) {
 func paymentStatusCheckRequestIsScheduledForCheckoutSession(ctx context.Context) (context.Context, error) {
 
 	id := uuid.NewString()
-	var channel = make(chan int, 1)
+	var channel = make(chan string, 1)
+
+	callCount := ""
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount = callCount + "1"
+		fmt.Println("channel:", callCount)
+	}))
+
 	go Scheduler(id, channel, 2, func() error {
-		callCount := 0
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			callCount++
-			fmt.Println("channel:", callCount)
-		}))
 		_, err := http.Get(server.URL)
 		if err != nil {
 			return err
 		}
-		channel <- callCount
 		return nil
 	})
-	c := <-channel
-	ctx = context.WithValue(ctx, contextKey("count"), c)
+	ctx = context.WithValue(ctx, contextKey("count"), &callCount)
 
 	return ctx, nil
 }
 
 func paymentStatusCheckRequestShouldBeSentToPaymentGatewayAfterS(ctx context.Context, arg1 int) error {
 	time.Sleep(time.Duration(arg1+1) * time.Second)
-	c := ctx.Value(contextKey("count")).(int)
-	if c != 1 {
+	c := ctx.Value(contextKey("count")).(*string)
+	if *c != "1" {
+		fmt.Printf("count value, %v", c)
 		return fmt.Errorf("payment status check request not sent to gateway")
 	}
 	return nil
