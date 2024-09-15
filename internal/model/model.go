@@ -131,6 +131,14 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
+func NewError(status int, msg string, rootError error) error {
+	return &Error{
+		ErrCode:   status,
+		Message:   msg,
+		RootError: rootError,
+	}
+}
+
 type Event struct {
 	ID          int32     `json:"id"`
 	Title       string    `json:"title"`
