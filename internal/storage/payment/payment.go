@@ -14,11 +14,11 @@ import (
 )
 
 type payment struct {
-	logger slog.Logger
+	logger *slog.Logger
 	db     *db.Queries
 }
 
-func Init(logger slog.Logger, db *db.Queries) storage.Payment {
+func Init(logger *slog.Logger, db *db.Queries) storage.Payment {
 	return &payment{
 		logger: logger,
 		db:     db,

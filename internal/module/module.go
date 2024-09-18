@@ -3,10 +3,12 @@ package module
 import (
 	"context"
 	"event_ticket/internal/model"
+	"time"
 )
 
 type Ticket interface {
-	ReserveTicket(ctx context.Context, ticketNo, tripId int32) (string, error)
+	ReserveTicket(ctx context.Context, req model.ReserveTicketRequest, scheduler func()) (model.Session, error)
+	ScheduleOntimeoutProcess(ctx context.Context, delay time.Duration, url string)
 }
 
 type User interface {

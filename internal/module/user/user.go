@@ -14,12 +14,12 @@ import (
 )
 
 type user struct {
-	logger     slog.Logger
+	logger     *slog.Logger
 	user       storage.User
 	tokenMaker token.TokenMaker
 }
 
-func Init(logger slog.Logger, usr storage.User, tokenMaker token.TokenMaker) module.User {
+func Init(logger *slog.Logger, usr storage.User, tokenMaker token.TokenMaker) module.User {
 
 	return &user{
 		logger:     logger,

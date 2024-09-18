@@ -7,7 +7,7 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func InitConfig(path string, logger slog.Logger) {
+func InitConfig(path string, logger *slog.Logger) {
 	viper.AddConfigPath(path)
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")

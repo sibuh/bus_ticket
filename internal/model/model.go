@@ -97,12 +97,12 @@ type PaymentRequest struct {
 	Lang           string        `json:"lang"`
 }
 
-type Session struct {
-	SessionId   string  `json:"sessionId"`
-	PaymentUrl  string  `json:"paymentUrl"`
-	CancelUrl   string  `json:"cancelUrl"`
-	TotalAmount float64 `json:"totalAmount"`
-}
+//	type Session struct {
+//		SessionId   string  `json:"sessionId"`
+//		PaymentUrl  string  `json:"paymentUrl"`
+//		CancelUrl   string  `json:"cancelUrl"`
+//		TotalAmount float64 `json:"totalAmount"`
+//	}
 type CheckoutResponse struct {
 	Error   bool    `json:"error"`
 	Message string  `json:"message"`
@@ -129,6 +129,14 @@ type Error struct {
 
 func (e *Error) Error() string {
 	return e.Message
+}
+
+func NewError(status int, msg string, rootError error) error {
+	return &Error{
+		ErrCode:   status,
+		Message:   msg,
+		RootError: rootError,
+	}
 }
 
 type Event struct {
@@ -161,8 +169,23 @@ type Payment struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 type Ticket struct {
-	TripId   int32
-	TicketNo int32
-	BusNo    int32
-	Status   string
+	ID       string `mapstructure:"id" json:"id"`
+	TripID   int32  `mapstructure:"trip_id" json:"trip_id"`
+	TicketNo int32  `mapstructure:"ticket_no" json:"ticket_no"`
+	BusNo    int32  `mapstructure:"bus_no" json:"bus_no"`
+	Status   string `mapstructure:"status" json:"status"`
+}
+type ReserveTicketRequest struct {
+	ID     string `json:"id"`
+	Status string `json:"status"`
+}
+
+type Session struct {
+	ID            string    `json:"id"`
+	TicketID      string    `json:"ticket_id"`
+	PaymentStatus string    `json:"payment_status"`
+	PaymentURL    string    `json:"payment_url"`
+	CancelURL     string    `json:"cancel_url"`
+	Amount        float64   `json:"totalAmount"`
+	CreatedAt     time.Time `json:"created_at"`
 }
