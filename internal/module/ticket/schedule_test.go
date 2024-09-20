@@ -2,6 +2,9 @@ package ticket
 
 import (
 	"context"
+	"event_ticket/internal/model"
+	"event_ticket/internal/module/callback"
+	"event_ticket/internal/module/scheduler"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -42,16 +45,15 @@ func TestScheduleOntimeoutProcess(t *testing.T) {
 	}
 }
 
-// func noPaymentStatusCheckRequestShouldBeSentWithinS(ctx context.Context, arg1 int) error {
-// 	t := time.NewTimer(time.Duration(arg1 - 1))
-// 	select {
-// 	case <-t.C:
-// 		return nil
-// 	case <-channel:
-// 		return fmt.Errorf("payment status check request should not be sent to gateway before %d secs", arg1)
-// 	}
-
-// }
+func noPaymentStatusCheckRequestShouldBeSentWithinS(ctx context.Context, arg1 int) error {
+	time.Sleep(time.Duration(arg1-1) * time.Second)
+	c := ctx.Value(contextKey("count")).(*string)
+	if *c != "" {
+		fmt.Printf("count value, %v", c)
+		return fmt.Errorf("payment status check request should not be sent to gateway")
+	}
+	return nil
+}
 
 func paymentStatusCheckRequestIsScheduledForCheckoutSession(ctx context.Context) (context.Context, error) {
 
@@ -71,6 +73,13 @@ func paymentStatusCheckRequestIsScheduledForCheckoutSession(ctx context.Context)
 		}
 		return nil
 	})
+	// scheduler registers callback
+	schedulerMap := scheduler.Init(map[string]chan string{
+		id: channel,
+	})
+
+	ctx = context.WithValue(ctx, contextKey("map"), schedulerMap)
+	ctx = context.WithValue(ctx, contextKey("sesssionId"), id)
 	ctx = context.WithValue(ctx, contextKey("count"), &callCount)
 
 	return ctx, nil
@@ -84,44 +93,44 @@ func paymentStatusCheckRequestShouldBeSentToPaymentGatewayAfterS(ctx context.Con
 		return fmt.Errorf("payment status check request not sent to gateway")
 	}
 	return nil
-	// select {
-	// case <-t.C:
-	// 	return fmt.Errorf("payment status check request not sent to gateway")
-	// case <-channel:
-	// 	return nil
-	// }
-
 }
 
-// func scheduledProcessShouldBeTerminated() error {
-// 	t := time.NewTimer(2 * time.Second)
-// 	select {
-// 	case <-channel:
-// 		return fmt.Errorf("check payment status request must be cancelled")
-// 	case <-t.C:
-// 		return nil
-// 	}
+func scheduledProcessShouldBeTerminated(ctx context.Context) error {
+	schedulerMap := ctx.Value(contextKey("map")).(*scheduler.Scheduler)
+	sessionId := ctx.Value(contextKey("sessionId")).(string)
 
-// }
+	ch := schedulerMap.Get(sessionId)
 
-// func successOrFailureCallbackArrivesForCheckoutSession(ctx context.Context) error {
-// 	id, ok := ctx.Value(contextKey("id-key")).(string)
-// 	if !ok {
-// 		return fmt.Errorf("failed to get id from context")
-// 	}
-// 	ch <- id
-// 	return nil
-// }
+	if ch != nil {
+		return fmt.Errorf("Scheduled process should have been removed")
+	}
+	return nil
+}
+
+func successOrFailureCallbackArrivesForCheckoutSession(ctx context.Context) context.Context {
+	// callback module initiate
+	schedulerMap := ctx.Value(contextKey("map")).(*scheduler.Scheduler)
+	sessionId := ctx.Value(contextKey("sessionId")).(string)
+
+	callbackModule := callback.Init(*schedulerMap)
+
+	samplePayload := model.Payment{
+		IntentID: sessionId,
+	}
+
+	callbackModule.HandlePaymentStatusUpdate(samplePayload)
+	return ctx
+}
 
 func InitializeScenario(ctx *godog.ScenarioContext) {
-	// ctx.Step(`^no payment status check request should be sent within (\d+)s$`,
-	// 	noPaymentStatusCheckRequestShouldBeSentWithinS)
+	ctx.Step(`^no payment status check request should be sent within (\d+)s$`,
+		noPaymentStatusCheckRequestShouldBeSentWithinS)
 	ctx.Step(`^payment status check request is scheduled for checkout session$`,
 		paymentStatusCheckRequestIsScheduledForCheckoutSession)
 	ctx.Step(`^payment status check request should be sent to payment gateway after (\d+)s$`,
 		paymentStatusCheckRequestShouldBeSentToPaymentGatewayAfterS)
-	// ctx.Step(`^scheduled process should be terminated$`, scheduledProcessShouldBeTerminated)
-	// ctx.Step(`^success or failure callback arrives for checkout session$`,
-	// 	successOrFailureCallbackArrivesForCheckoutSession)
+	ctx.Step(`^scheduled process should be terminated$`, scheduledProcessShouldBeTerminated)
+	ctx.Step(`^success or failure callback arrives for checkout session$`,
+		successOrFailureCallbackArrivesForCheckoutSession)
 
 }

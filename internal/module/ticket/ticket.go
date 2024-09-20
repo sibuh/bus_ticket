@@ -18,7 +18,7 @@ type ticket struct {
 	storageTicket storage.Ticket
 	platform      platform.PaymentGatewayIntegrator
 	session       storage.Session
-	schedulerMap  scheduler.Scheduler
+	scheduler     scheduler.Scheduler
 }
 
 type TicketStatus string
@@ -107,9 +107,9 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 	sId := storedSession.ID
 	ch := make(chan string)
 
-	t.schedulerMap.Append(sId, ch)
+	t.scheduler.Append(sId, ch)
 
-	go Scheduler(sId, ch, 10*time.Minute, func() error { return nil })
+	go t.scheduler.Scheduler(sId, ch, 10*time.Minute, func() error { return nil })
 	return storedSession, err
 }
 

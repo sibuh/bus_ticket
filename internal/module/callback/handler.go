@@ -6,20 +6,22 @@ import (
 )
 
 type Callback struct {
-	schedulerMap scheduler.Scheduler
+	scheduler scheduler.Scheduler
+}
+
+func Init(scheduler scheduler.Scheduler) *Callback {
+	return &Callback{
+		scheduler: scheduler,
+	}
 }
 
 func (c *Callback) exitScheduler(payload model.Payment) {
 	sessionId := payload.IntentID
 
-	ch := c.schedulerMap.Map[sessionId]
+	ch := c.scheduler.Get(sessionId)
 	ch <- sessionId
-
-	c.schedulerMap.Remove(sessionId)
 }
 
-func (c *Callback) handlePaymentStatusUpdate(payload model.Payment) {
+func (c *Callback) HandlePaymentStatusUpdate(payload model.Payment) {
 	c.exitScheduler(payload)
-
-	// do callback business logic
 }
