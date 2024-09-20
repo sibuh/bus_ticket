@@ -66,20 +66,19 @@ func paymentStatusCheckRequestIsScheduledForCheckoutSession(ctx context.Context)
 		fmt.Println("channel:", callCount)
 	}))
 
-	go Scheduler(id, channel, 2, func() error {
+	// scheduler registers callback
+	schedulerMap := scheduler.Init(map[string]chan string{
+		id: channel,
+	})
+	go schedulerMap.Scheduler(id, channel, 2, func() error {
 		_, err := http.Get(server.URL)
 		if err != nil {
 			return err
 		}
 		return nil
 	})
-	// scheduler registers callback
-	schedulerMap := scheduler.Init(map[string]chan string{
-		id: channel,
-	})
-
 	ctx = context.WithValue(ctx, contextKey("map"), schedulerMap)
-	ctx = context.WithValue(ctx, contextKey("sesssionId"), id)
+	ctx = context.WithValue(ctx, contextKey("sessionId"), id)
 	ctx = context.WithValue(ctx, contextKey("count"), &callCount)
 
 	return ctx, nil
