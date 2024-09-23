@@ -35,10 +35,11 @@ func Init(log *slog.Logger, tkt storage.Ticket, platform platform.PaymentGateway
 		storageTicket: tkt,
 		platform:      platform,
 		session:       ssn,
+		scheduler:     *schedule.Init(),
 	}
 }
 
-func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketRequest, scheduler func()) (model.Session, error) {
+func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Session, error) {
 	tkt, err := t.storageTicket.GetTicket(ctx, req.ID)
 	if err != nil {
 		return model.Session{}, err

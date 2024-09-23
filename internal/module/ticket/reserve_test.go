@@ -127,7 +127,7 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 	mpg := paymentintegration.Init(logger, url)
 	ssn := session.Init(logger, mqueries)
 	moduleTicket := Init(logger, store, mpg, ssn)
-	_, err := moduleTicket.ReserveTicket(ctx, model.ReserveTicketRequest{ID: mqueries.Tkt.ID}, func() {})
+	_, err := moduleTicket.ReserveTicket(ctx, model.ReserveTicketRequest{ID: mqueries.Tkt.ID})
 	if err != nil {
 		var errorKey contextKey = "error-key"
 		ctx = context.WithValue(ctx, errorKey, err)
@@ -182,10 +182,11 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 	mod := Init(logger, store, platform, ssn)
 	var SchedulerCount int = 0
 
-	session, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID}, func() { SchedulerCount++ })
+	session, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID})
 	if err != nil {
 		return nil, err
 	}
+	SchedulerCount++
 	var sessionKey contextKey = "session-key"
 	ctx = context.WithValue(ctx, sessionKey, session)
 	var scheduleKey contextKey = "schedule-key"
@@ -211,8 +212,7 @@ func checkoutSessionCreationFailsDuringReserveTicketRequest(ctx context.Context)
 	session := session.Init(logger, queries)
 	mod := Init(logger, store, platform, session)
 
-	_, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID, Status: string(constant.Onhold)}, func() {
-	})
+	_, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID, Status: string(constant.Onhold)})
 	if err == nil {
 		return ctx, fmt.Errorf("expected non-nil error but did not get any error")
 	}

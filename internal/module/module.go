@@ -7,7 +7,7 @@ import (
 )
 
 type Ticket interface {
-	ReserveTicket(ctx context.Context, req model.ReserveTicketRequest, scheduler func()) (model.Session, error)
+	ReserveTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Session, error)
 	ScheduleOntimeoutProcess(ctx context.Context, delay time.Duration, url string)
 }
 
