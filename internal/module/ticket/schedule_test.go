@@ -4,7 +4,6 @@ import (
 	"context"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module/callback"
-	"event_ticket/internal/module/scheduler"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -14,20 +13,6 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/google/uuid"
 )
-
-// type Mqueries struct {
-// 	Ssn db.Session
-// 	Tkt db.Ticket
-// 	db.Querier
-// }
-
-// func (mq *Mqueries) GetTicketStatus(ctx context.Context, sid string) (string, error) {
-// 	return mq.Tkt.Status, nil
-// }
-
-// var callCount int
-// var ch = make(chan string)
-// var id string
 
 func TestScheduleOntimeoutProcess(t *testing.T) {
 	result := godog.TestSuite{
@@ -67,17 +52,17 @@ func paymentStatusCheckRequestIsScheduledForCheckoutSession(ctx context.Context)
 	}))
 
 	// scheduler registers callback
-	schedulerMap := scheduler.Init(map[string]chan string{
-		id: channel,
-	})
-	go schedulerMap.Scheduler(id, channel, 2, func() error {
+	cback := callback.Init()
+
+	cback.Scheduler.Append(id, channel)
+	go cback.Scheduler.Schedule(id, channel, 2, func() error {
 		_, err := http.Get(server.URL)
 		if err != nil {
 			return err
 		}
 		return nil
 	})
-	ctx = context.WithValue(ctx, contextKey("map"), schedulerMap)
+	ctx = context.WithValue(ctx, contextKey("callback"), cback)
 	ctx = context.WithValue(ctx, contextKey("sessionId"), id)
 	ctx = context.WithValue(ctx, contextKey("count"), &callCount)
 
@@ -95,10 +80,10 @@ func paymentStatusCheckRequestShouldBeSentToPaymentGatewayAfterS(ctx context.Con
 }
 
 func scheduledProcessShouldBeTerminated(ctx context.Context) error {
-	schedulerMap := ctx.Value(contextKey("map")).(*scheduler.Scheduler)
+	cback := ctx.Value(contextKey("callback")).(*callback.Callback)
 	sessionId := ctx.Value(contextKey("sessionId")).(string)
 
-	ch := schedulerMap.Get(sessionId)
+	ch := cback.Scheduler.Get(sessionId)
 
 	if ch != nil {
 		return fmt.Errorf("Scheduled process should have been removed")
@@ -108,16 +93,13 @@ func scheduledProcessShouldBeTerminated(ctx context.Context) error {
 
 func successOrFailureCallbackArrivesForCheckoutSession(ctx context.Context) context.Context {
 	// callback module initiate
-	schedulerMap := ctx.Value(contextKey("map")).(*scheduler.Scheduler)
+	cback := ctx.Value(contextKey("callback")).(*callback.Callback)
 	sessionId := ctx.Value(contextKey("sessionId")).(string)
-
-	callbackModule := callback.Init(*schedulerMap)
 
 	samplePayload := model.Payment{
 		IntentID: sessionId,
 	}
-
-	callbackModule.HandlePaymentStatusUpdate(samplePayload)
+	cback.HandlePaymentStatusUpdate(samplePayload)
 	return ctx
 }
 

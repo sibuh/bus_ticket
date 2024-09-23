@@ -1,4 +1,4 @@
-package scheduler
+package schedule
 
 import "time"
 
@@ -6,8 +6,10 @@ type Scheduler struct {
 	smap map[string]chan string
 }
 
-func Init(smap map[string]chan string) *Scheduler {
-	return &Scheduler{smap}
+func Init() *Scheduler {
+	return &Scheduler{
+		smap: make(map[string]chan string),
+	}
 }
 
 func (s *Scheduler) Append(id string, ch chan string) {
@@ -26,7 +28,7 @@ func (s *Scheduler) Remove(id string) {
 	delete(s.smap, id)
 }
 
-func (s *Scheduler) Scheduler(id string, ch chan string, duration time.Duration, queryFunc func() error) {
+func (s *Scheduler) Schedule(id string, ch chan string, duration time.Duration, queryFunc func() error) {
 	select {
 	case <-ch:
 		s.Remove(id)

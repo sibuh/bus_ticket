@@ -4,7 +4,7 @@ import (
 	"context"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
-	"event_ticket/internal/module/scheduler"
+	"event_ticket/internal/module/schedule"
 	"event_ticket/internal/platform"
 	"event_ticket/internal/storage"
 	"net/http"
@@ -18,7 +18,7 @@ type ticket struct {
 	storageTicket storage.Ticket
 	platform      platform.PaymentGatewayIntegrator
 	session       storage.Session
-	scheduler     scheduler.Scheduler
+	scheduler     schedule.Scheduler
 }
 
 type TicketStatus string
@@ -109,7 +109,7 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 
 	t.scheduler.Append(sId, ch)
 
-	go t.scheduler.Scheduler(sId, ch, 10*time.Minute, func() error { return nil })
+	go t.scheduler.Schedule(sId, ch, 10*time.Minute, func() error { return nil })
 	return storedSession, err
 }
 

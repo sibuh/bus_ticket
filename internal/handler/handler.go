@@ -25,3 +25,6 @@ type Event interface {
 	FetchEvents(c *gin.Context)
 	FetchEvent(c *gin.Context)
 }
+type Callback interface {
+	HandleCallback(c *gin.Context)
+}
