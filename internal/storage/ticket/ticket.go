@@ -24,7 +24,7 @@ func Init(logger *slog.Logger, db db.Querier) storage.Ticket {
 		db:     db,
 	}
 }
-func (t *ticket) HoldTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Ticket, error) {
+func (t *ticket) UpdateTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Ticket, error) {
 	tkt, err := t.db.UpdateTicketStatus(ctx, db.UpdateTicketStatusParams{
 		ID:     req.ID,
 		Status: string(constant.Onhold),

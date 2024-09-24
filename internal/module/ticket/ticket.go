@@ -7,6 +7,7 @@ import (
 	"event_ticket/internal/module/schedule"
 	"event_ticket/internal/platform"
 	"event_ticket/internal/storage"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -18,7 +19,7 @@ type ticket struct {
 	storageTicket storage.Ticket
 	platform      platform.PaymentGatewayIntegrator
 	session       storage.Session
-	scheduler     schedule.Scheduler
+	scheduler     *schedule.Scheduler
 }
 
 type TicketStatus string
@@ -29,13 +30,22 @@ const (
 	Onhold   TicketStatus = "Onhold"
 )
 
-func Init(log *slog.Logger, tkt storage.Ticket, platform platform.PaymentGatewayIntegrator, ssn storage.Session) module.Ticket {
+type PaymentStatus string
+
+const (
+	Succeeded PaymentStatus = "SUCCEEDED"
+	Failed    PaymentStatus = "FAILED"
+	Cancelled PaymentStatus = "CANCELLED"
+	Pending   PaymentStatus = "PENDING"
+)
+
+func Init(log *slog.Logger, tkt storage.Ticket, platform platform.PaymentGatewayIntegrator, ssn storage.Session, sc *schedule.Scheduler) module.Ticket {
 	return &ticket{
 		log:           log,
 		storageTicket: tkt,
 		platform:      platform,
 		session:       ssn,
-		scheduler:     *schedule.Init(),
+		scheduler:     sc,
 	}
 }
 
@@ -45,24 +55,19 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 		return model.Session{}, err
 	}
 	if tkt.Status == string(Reserved) {
-		newError := model.Error{
-			ErrCode:   http.StatusBadRequest,
-			Message:   "ticket is already reserved please try to reserve free ticket",
-			RootError: nil,
-		}
-		return model.Session{}, &newError
+		newError := model.NewError(http.StatusBadRequest, "ticket is already reserved please try to reserve free ticket", fmt.Errorf("ticket reserved"))
+		t.log.Error(newError.Error(), newError)
+
+		return model.Session{}, newError
 	}
 
 	if tkt.Status == string(Onhold) {
-		newError := model.Error{
-			ErrCode:   http.StatusBadRequest,
-			Message:   "ticket is onhold please try later",
-			RootError: nil,
-		}
-		return model.Session{}, &newError
+		newError := model.NewError(http.StatusBadRequest, "ticket is onhold please try later", fmt.Errorf("ticket held"))
+		t.log.Error(newError.Error(), newError)
+		return model.Session{}, newError
 	}
 
-	tkt, err = t.storageTicket.HoldTicket(ctx, req)
+	tkt, err = t.storageTicket.UpdateTicket(ctx, req)
 
 	if err != nil {
 		return model.Session{}, err
@@ -74,55 +79,65 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 	}
 	session, err := t.platform.CreateCheckoutSession(tkt)
 	if err != nil {
+		newError := model.NewError(http.StatusInternalServerError, "failed to create checkout session", err)
+		t.log.Error(newError.Error(), newError)
 		//unhold ticket if create checkout session fails
 		_, err = t.storageTicket.UnholdTicket(tkt.ID)
 		if err != nil {
-			newError := model.Error{
-				ErrCode:   http.StatusInternalServerError,
-				Message:   "failed to unhold ticket",
-				RootError: err,
-			}
-			t.log.Error("failed to unhold ticket when creating checkout session fails", newError)
+			newError := model.NewError(http.StatusInternalServerError, "failed to unhold ticket", err)
+			t.log.Error(newError.Error(), newError)
 		}
 
-		newError := model.Error{
-			ErrCode:   http.StatusInternalServerError,
-			Message:   "failed to create checkout session",
-			RootError: err,
-		}
-
-		t.log.Error("failed to create checkout session", newError)
-		return model.Session{}, &newError
+		return model.Session{}, newError
 	}
 	storedSession, err := t.session.StoreCheckoutSession(ctx, session)
 	if err != nil {
-		newError := model.Error{
-			ErrCode:   http.StatusInternalServerError,
-			Message:   "failed to store checkout session",
-			RootError: err,
-		}
+		newError := model.NewError(http.StatusInternalServerError, "failed to store checkout session", err)
 		t.log.Error(newError.Error(), newError)
-		return model.Session{}, &newError
+		return model.Session{}, newError
 	}
 
 	sId := storedSession.ID
 	ch := make(chan string)
 
-	t.scheduler.Append(sId, ch)
-
-	go t.scheduler.Schedule(sId, ch, 10*time.Minute, func() error { return nil })
+	go t.scheduler.Schedule(sId, ch, 10*time.Minute, t.QueryFunc)
 	return storedSession, err
 }
+func (t *ticket) QueryFunc(id string) error {
+	for i := 0; i < 5; i++ {
 
-// delay some time
-// read session and payment status
-// if reserved  return
-// else send status request to check status
-// if pending send cancel request
-// if request succeed release ticket
-// else resend cancellation request
-// if status is failed release ticket
-// if status successful reserve ticket
-func (t *ticket) ScheduleOntimeoutProcess(ctx context.Context, delay time.Duration, url string) {
+		d := time.Duration(i)
+		sleep := 30 * time.Second * (1 + d)
 
+		status, err := t.platform.CheckPaymentStatus(context.Background(), id)
+		if err != nil {
+			t.log.Error("payment status request failed", err)
+			time.Sleep(sleep)
+			continue
+		}
+		if status == string(Succeeded) || status == string(Failed) {
+			_, err := t.storageTicket.UpdateTicket(context.Background(), model.ReserveTicketRequest{ID: id, Status: status})
+			if err != nil {
+				t.log.Error("failed to update ticket status after cancelling session")
+			}
+			break
+		} else if status == string(Pending) {
+			cancel, err := t.platform.CancelCheckoutSession(context.Background(), id)
+			if err != nil {
+				t.log.Error("failed to cancel check out session", err)
+				time.Sleep(sleep)
+				continue
+			}
+			if cancel {
+				_, err := t.storageTicket.UpdateTicket(context.Background(), model.ReserveTicketRequest{ID: id, Status: string(Free)})
+				if err != nil {
+					t.log.Error("failed to update ticket status after cancelling session")
+				}
+				break
+			}
+		}
+
+	}
+
+	return nil
 }

@@ -6,23 +6,26 @@ import (
 )
 
 type Callback struct {
-	Scheduler schedule.Scheduler
+	Scheduler *schedule.Scheduler
 }
 
-func Init() *Callback {
+func Init(scheduler *schedule.Scheduler) *Callback {
 	return &Callback{
-		Scheduler: *schedule.Init(),
+		Scheduler: scheduler,
 	}
 }
 
-func (c *Callback) ExitScheduler(payload model.Payment) {
+func (c *Callback) exitScheduler(payload model.Payment) {
 	sessionId := payload.IntentID
 
 	ch := c.Scheduler.Get(sessionId)
-	ch <- sessionId
+	if ch != nil {
+		ch <- sessionId
+	}
+
 }
 
 func (c *Callback) HandlePaymentStatusUpdate(payload model.Payment) {
-	c.ExitScheduler(payload)
+	c.exitScheduler(payload)
 	//TODO:do databse update
 }

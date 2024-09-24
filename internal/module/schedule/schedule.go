@@ -1,6 +1,8 @@
 package schedule
 
-import "time"
+import (
+	"time"
+)
 
 type Scheduler struct {
 	smap map[string]chan string
@@ -12,7 +14,7 @@ func Init() *Scheduler {
 	}
 }
 
-func (s *Scheduler) Append(id string, ch chan string) {
+func (s *Scheduler) append(id string, ch chan string) {
 	s.smap[id] = ch
 }
 
@@ -24,16 +26,19 @@ func (s *Scheduler) Get(id string) chan string {
 	return val
 }
 
-func (s *Scheduler) Remove(id string) {
+func (s *Scheduler) remove(id string) {
 	delete(s.smap, id)
 }
 
-func (s *Scheduler) Schedule(id string, ch chan string, duration time.Duration, queryFunc func() error) {
+func (s *Scheduler) Schedule(id string, ch chan string, duration time.Duration, f func(id string) error) {
+	s.append(id, ch)
+
 	select {
 	case <-ch:
-		s.Remove(id)
+		s.remove(id)
 		return
 	case <-time.After(duration * time.Second):
-		go queryFunc()
+		s.remove(id)
+		f(id)
 	}
 }

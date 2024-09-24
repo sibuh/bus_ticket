@@ -8,4 +8,5 @@ import (
 type PaymentGatewayIntegrator interface {
 	CreateCheckoutSession(ticketInfo model.Ticket) (model.Session, error)
 	CancelCheckoutSession(ctx context.Context, ID string) (bool, error)
+	CheckPaymentStatus(ctx context.Context, ID string) (string, error)
 }

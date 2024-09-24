@@ -4,7 +4,9 @@ import (
 	"context"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module/callback"
+	"event_ticket/internal/module/schedule"
 	"fmt"
+
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -51,18 +53,16 @@ func paymentStatusCheckRequestIsScheduledForCheckoutSession(ctx context.Context)
 		fmt.Println("channel:", callCount)
 	}))
 
-	// scheduler registers callback
-	cback := callback.Init()
+	sc := schedule.Init()
 
-	cback.Scheduler.Append(id, channel)
-	go cback.Scheduler.Schedule(id, channel, 2, func() error {
+	go sc.Schedule(id, channel, 2, func(id string) error {
 		_, err := http.Get(server.URL)
 		if err != nil {
 			return err
 		}
 		return nil
 	})
-	ctx = context.WithValue(ctx, contextKey("callback"), cback)
+	ctx = context.WithValue(ctx, contextKey("scheduler"), sc)
 	ctx = context.WithValue(ctx, contextKey("sessionId"), id)
 	ctx = context.WithValue(ctx, contextKey("count"), &callCount)
 
@@ -80,10 +80,10 @@ func paymentStatusCheckRequestShouldBeSentToPaymentGatewayAfterS(ctx context.Con
 }
 
 func scheduledProcessShouldBeTerminated(ctx context.Context) error {
-	cback := ctx.Value(contextKey("callback")).(*callback.Callback)
+	sc := ctx.Value(contextKey("scheduler")).(*schedule.Scheduler)
 	sessionId := ctx.Value(contextKey("sessionId")).(string)
 
-	ch := cback.Scheduler.Get(sessionId)
+	ch := sc.Get(sessionId)
 
 	if ch != nil {
 		return fmt.Errorf("Scheduled process should have been removed")
@@ -93,13 +93,14 @@ func scheduledProcessShouldBeTerminated(ctx context.Context) error {
 
 func successOrFailureCallbackArrivesForCheckoutSession(ctx context.Context) context.Context {
 	// callback module initiate
-	cback := ctx.Value(contextKey("callback")).(*callback.Callback)
+	sc := ctx.Value(contextKey("scheduler")).(*schedule.Scheduler)
 	sessionId := ctx.Value(contextKey("sessionId")).(string)
-
+	cback := callback.Init(sc)
 	samplePayload := model.Payment{
 		IntentID: sessionId,
 	}
 	cback.HandlePaymentStatusUpdate(samplePayload)
+
 	return ctx
 }
 

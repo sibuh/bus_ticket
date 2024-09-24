@@ -6,6 +6,7 @@ import (
 	"event_ticket/internal/constant"
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
+	"event_ticket/internal/module/schedule"
 	paymentintegration "event_ticket/internal/platform/payment_integration"
 	"event_ticket/internal/storage/session"
 	sticket "event_ticket/internal/storage/ticket"
@@ -126,7 +127,8 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 	})).URL
 	mpg := paymentintegration.Init(logger, url)
 	ssn := session.Init(logger, mqueries)
-	moduleTicket := Init(logger, store, mpg, ssn)
+	sc := schedule.Init()
+	moduleTicket := Init(logger, store, mpg, ssn, sc)
 	_, err := moduleTicket.ReserveTicket(ctx, model.ReserveTicketRequest{ID: mqueries.Tkt.ID})
 	if err != nil {
 		var errorKey contextKey = "error-key"
@@ -179,7 +181,8 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 	}))
 	url := server.URL
 	platform := paymentintegration.Init(logger, url)
-	mod := Init(logger, store, platform, ssn)
+	sc := schedule.Init()
+	mod := Init(logger, store, platform, ssn, sc)
 	var SchedulerCount int = 0
 
 	session, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID})
@@ -210,7 +213,8 @@ func checkoutSessionCreationFailsDuringReserveTicketRequest(ctx context.Context)
 	}))
 	platform := paymentintegration.Init(logger, server.URL)
 	session := session.Init(logger, queries)
-	mod := Init(logger, store, platform, session)
+	sc := schedule.Init()
+	mod := Init(logger, store, platform, session, sc)
 
 	_, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID, Status: string(constant.Onhold)})
 	if err == nil {

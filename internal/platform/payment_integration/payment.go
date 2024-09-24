@@ -49,3 +49,6 @@ func (p *paymentGateway) CreateCheckoutSession(ticketInfo model.Ticket) (model.S
 func (p *paymentGateway) CancelCheckoutSession(ctx context.Context, sessionId string) (bool, error) {
 	return true, nil
 }
+func (p *paymentGateway) CheckPaymentStatus(ctx context.Context, ID string) (string, error) {
+	return "", nil
+}
