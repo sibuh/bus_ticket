@@ -21,6 +21,9 @@ type Payment interface {
 	GetPayment(ctx context.Context, intent_id string) (model.Payment, error)
 }
 
+type Token interface {
+}
+
 type Ticket interface {
 	UpdateTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Ticket, error)
 	GetTicket(ctx context.Context, id string) (model.Ticket, error)

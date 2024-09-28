@@ -1,6 +1,10 @@
 CREATE TABLE tickets (
-    trip_id  int NOT NULL,
+    id SERIAL NOT NULL,
+    trip_id int NOT NULL,
     bus_no int NOT NULL,
     ticket_no int NOT NULL,
-    status VARCHAR(20)
+    status VARCHAR(20),
+    user_id int
 );
+ALTER TABLE tickets
+ADD FOREIGN KEY(user_id) REFERENCES users(id)

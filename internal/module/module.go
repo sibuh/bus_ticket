@@ -20,6 +20,9 @@ type Event interface {
 	FetchEvent(ctx context.Context, id int32) (model.Event, error)
 }
 
+type Token interface {
+}
+
 type Payment interface {
 	CreatePaymentIntent(ctx context.Context, userID, eventID int32) (string, error)
 	GetPayment(ctx context.Context, intentID string) (model.Payment, error)

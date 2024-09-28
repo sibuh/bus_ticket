@@ -152,6 +152,11 @@ type Event struct {
 	DeletedAt   time.Time `json:"deleted_at"`
 }
 
+type TokenPayload struct {
+	UserID    string `json:"user_id"`
+	SessionID string `json:"session_id"`
+}
+
 type CreateIntentParam struct {
 	UserID   int32  `json:"user_id"`
 	EventID  int32  `json:"event_id"`
