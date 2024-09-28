@@ -8,8 +8,6 @@ import (
 	"event_ticket/internal/model"
 	"event_ticket/internal/module/schedule"
 	paymentintegration "event_ticket/internal/platform/payment_integration"
-	"event_ticket/internal/storage/session"
-	sticket "event_ticket/internal/storage/ticket"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -115,9 +113,6 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 	if !ok {
 		return ctx, fmt.Errorf("no value found in context")
 	}
-
-	store := sticket.Init(logger, mqueries)
-
 	url := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		CallCount++
 		w.WriteHeader(http.StatusOK)
@@ -126,10 +121,12 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 		w.Write(b)
 	})).URL
 	mpg := paymentintegration.Init(logger, url)
-	ssn := session.Init(logger, mqueries)
 	sc := schedule.Init()
-	moduleTicket := Init(logger, store, mpg, ssn, sc)
-	_, err := moduleTicket.ReserveTicket(ctx, model.ReserveTicketRequest{ID: mqueries.Tkt.ID})
+	moduleTicket := Init(logger, mpg, mqueries, sc)
+	_, err := moduleTicket.ReserveTicket(ctx, model.ReserveTicketRequest{
+		ID:     mqueries.Tkt.ID,
+		Status: string(constant.Onhold),
+	})
 	if err != nil {
 		var errorKey contextKey = "error-key"
 		ctx = context.WithValue(ctx, errorKey, err)
@@ -162,9 +159,6 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 	queries := ctx.Value(contextKey("ticket-data")).(*MockQueries)
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	store := sticket.Init(logger, queries)
-	ssn := session.Init(logger, queries)
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		b, _ := json.Marshal(model.Session{
@@ -182,10 +176,13 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 	url := server.URL
 	platform := paymentintegration.Init(logger, url)
 	sc := schedule.Init()
-	mod := Init(logger, store, platform, ssn, sc)
+	mod := Init(logger, platform, queries, sc)
 	var SchedulerCount int = 0
 
-	session, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID})
+	session, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{
+		ID:     queries.Tkt.ID,
+		Status: string(Onhold),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -207,14 +204,12 @@ func theUserShouldGetCheckoutUrl(ctx context.Context) error {
 }
 func checkoutSessionCreationFailsDuringReserveTicketRequest(ctx context.Context) (context.Context, error) {
 	queries := ctx.Value(contextKey("ticket-data")).(*MockQueries)
-	store := sticket.Init(logger, queries)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	platform := paymentintegration.Init(logger, server.URL)
-	session := session.Init(logger, queries)
 	sc := schedule.Init()
-	mod := Init(logger, store, platform, session, sc)
+	mod := Init(logger, platform, queries, sc)
 
 	_, err := mod.ReserveTicket(ctx, model.ReserveTicketRequest{ID: queries.Tkt.ID, Status: string(constant.Onhold)})
 	if err == nil {

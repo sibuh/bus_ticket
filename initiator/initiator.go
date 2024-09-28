@@ -4,12 +4,10 @@ import (
 	"context"
 	"event_ticket/internal/handler/payment"
 	"event_ticket/internal/handler/ticket"
+	"event_ticket/internal/module/schedule"
 	mtkt "event_ticket/internal/module/ticket"
 	paymentintegration "event_ticket/internal/platform/payment_integration"
-	"event_ticket/internal/storage/session"
-	stkt "event_ticket/internal/storage/ticket"
 
-	spmt "event_ticket/internal/storage/payment"
 	"log"
 
 	huser "event_ticket/internal/handler/user"
@@ -20,9 +18,7 @@ import (
 	hevnt "event_ticket/internal/handler/event"
 	muser "event_ticket/internal/module/user"
 	"event_ticket/internal/routing"
-	"event_ticket/internal/storage/event"
 
-	"event_ticket/internal/storage/user"
 	"fmt"
 	"net/http"
 	"os"
@@ -44,22 +40,23 @@ func Initiate() {
 	logger.Info("initiate database")
 	queries := InitDB(viper.GetString("dbConn"))
 	logger.Info("intiating storage layer")
-	storage := NewStorage(user.Init(logger, queries), event.Init(logger, queries), spmt.Init(logger, queries))
+	// storage := NewStorage(user.Init(logger, queries), event.Init(logger, queries), spmt.Init(logger, queries))
 	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration"))
-	mware := middleware.NewMiddleware(logger, maker, storage.user)
+	mware := middleware.NewMiddleware(logger, maker, queries)
+	sc := schedule.Init()
 	module := NewModule(
 		muser.Init(
 			logger,
-			storage.user,
+			queries,
 			maker,
 		),
-		storage.event,
-		mpayment.Init(logger, storage.event),
+		mpayment.Init(logger, queries),
 		mtkt.Init(
 			logger,
-			stkt.Init(logger, queries),
 			paymentintegration.Init(logger, viper.GetString("payment.url")),
-			session.Init(logger, queries)),
+			queries,
+			sc,
+		),
 	)
 	err := godotenv.Load()
 	if err != nil {
