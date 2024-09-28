@@ -2,6 +2,7 @@ package module
 
 import (
 	"context"
+	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 )
 
@@ -10,7 +11,7 @@ type Ticket interface {
 }
 
 type User interface {
-	CreateUser(ctx context.Context, usr model.CreateUserRequest) (model.User, error)
+	CreateUser(ctx context.Context, usr model.CreateUserRequest) (db.User, error)
 	LoginUser(ctx context.Context, logReq model.LoginRequest) (string, error)
 	RefreshToken(ctx context.Context, username string) (string, error)
 }
@@ -22,5 +23,5 @@ type Event interface {
 
 type Payment interface {
 	CreatePaymentIntent(ctx context.Context, userID, eventID int32) (string, error)
-	GetPayment(ctx context.Context, intentID string) (model.Payment, error)
+	GetPayment(ctx context.Context, intentID string) (db.Payment, error)
 }

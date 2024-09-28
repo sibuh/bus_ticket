@@ -2,9 +2,9 @@ package payment
 
 import (
 	"context"
+	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
-	"event_ticket/internal/storage"
 	"net/http"
 
 	"github.com/stripe/stripe-go/v78"
@@ -14,19 +14,18 @@ import (
 
 type payment struct {
 	logger *slog.Logger
-	es     storage.Event
-	ps     storage.Payment
+	q      db.Querier
 }
 
-func Init(logger *slog.Logger, es storage.Event) module.Payment {
+func Init(logger *slog.Logger, q db.Querier) module.Payment {
 	return &payment{
 		logger: logger,
-		es:     es,
+		q:      q,
 	}
 }
 
 func (p *payment) CreatePaymentIntent(ctx context.Context, userID, eventID int32) (string, error) {
-	event, err := p.es.FetchEvent(ctx, eventID)
+	event, err := p.q.FetchEvent(ctx, eventID)
 	if err != nil {
 		return "", err
 	}
@@ -52,6 +51,6 @@ func (p *payment) CreatePaymentIntent(ctx context.Context, userID, eventID int32
 	return pi.ClientSecret, nil
 }
 
-func (p *payment) GetPayment(ctx context.Context, intentID string) (model.Payment, error) {
-	return p.ps.GetPayment(ctx, intentID)
+func (p *payment) GetPayment(ctx context.Context, intentID string) (db.Payment, error) {
+	return p.q.GetPayment(ctx, intentID)
 }

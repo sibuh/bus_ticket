@@ -9,10 +9,9 @@ type Module struct {
 	ticket  module.Ticket
 }
 
-func NewModule(user module.User, event module.Event, payment module.Payment, tkt module.Ticket) *Module {
+func NewModule(user module.User, payment module.Payment, tkt module.Ticket) *Module {
 	return &Module{
 		user:    user,
-		event:   event,
 		payment: payment,
 		ticket:  tkt,
 	}

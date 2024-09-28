@@ -2,9 +2,9 @@ package user
 
 import (
 	"context"
+	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
-	"event_ticket/internal/storage"
 	"event_ticket/internal/utils/pass"
 	"event_ticket/internal/utils/token"
 	"fmt"
@@ -15,21 +15,21 @@ import (
 
 type user struct {
 	logger     *slog.Logger
-	user       storage.User
 	tokenMaker token.TokenMaker
+	q          db.Querier
 }
 
-func Init(logger *slog.Logger, usr storage.User, tokenMaker token.TokenMaker) module.User {
+func Init(logger *slog.Logger, q db.Querier, tokenMaker token.TokenMaker) module.User {
 
 	return &user{
 		logger:     logger,
-		user:       usr,
 		tokenMaker: tokenMaker,
+		q:          q,
 	}
 
 }
 
-func (u *user) CreateUser(ctx context.Context, usr model.CreateUserRequest) (model.User, error) {
+func (u *user) CreateUser(ctx context.Context, usr model.CreateUserRequest) (db.User, error) {
 	if err := usr.Validate(); err != nil {
 		newError := model.Error{
 			ErrCode:   http.StatusBadRequest,
@@ -37,7 +37,7 @@ func (u *user) CreateUser(ctx context.Context, usr model.CreateUserRequest) (mod
 			RootError: err,
 		}
 		u.logger.Info("invalid user input", newError)
-		return model.User{}, &newError
+		return db.User{}, &newError
 	}
 	hash, err := pass.HashPassword(usr.Password)
 	if err != nil {
@@ -47,11 +47,18 @@ func (u *user) CreateUser(ctx context.Context, usr model.CreateUserRequest) (mod
 			RootError: err,
 		}
 		u.logger.Error("failed to hash password", newError)
-		return model.User{}, &newError
+		return db.User{}, &newError
 	}
 	usr.Password = hash
 
-	return u.user.CreateUser(ctx, usr)
+	return u.q.CreateUser(ctx, db.CreateUserParams{
+		FirstName: usr.FirstName,
+		LastName:  usr.LastName,
+		Username:  usr.Username,
+		Phone:     usr.Phone,
+		Password:  usr.Password,
+		Email:     usr.Email,
+	})
 }
 
 func (u *user) LoginUser(ctx context.Context, logReq model.LoginRequest) (string, error) {
@@ -65,7 +72,7 @@ func (u *user) LoginUser(ctx context.Context, logReq model.LoginRequest) (string
 		return "", &newError
 	}
 
-	usr, err := u.user.GetUser(ctx, logReq.Username)
+	usr, err := u.q.GetUser(ctx, logReq.Username)
 	if err != nil {
 		return "", err
 	}

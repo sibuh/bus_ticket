@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"event_ticket/internal/storage"
+	"event_ticket/internal/data/db"
 	"event_ticket/internal/utils/token"
 	"event_ticket/internal/utils/token/paseto"
 	"fmt"
@@ -17,14 +17,14 @@ const authType string = "Bearer"
 type Middleware struct {
 	logger *slog.Logger
 	maker  token.TokenMaker
-	us     storage.User
+	db.Querier
 }
 
-func NewMiddleware(logger *slog.Logger, maker token.TokenMaker, us storage.User) Middleware {
+func NewMiddleware(logger *slog.Logger, maker token.TokenMaker, q db.Querier) Middleware {
 	return Middleware{
-		logger: logger,
-		maker:  maker,
-		us:     us,
+		logger:  logger,
+		maker:   maker,
+		Querier: q,
 	}
 }
 
@@ -70,7 +70,7 @@ func (m *Middleware) Authenticate() gin.HandlerFunc {
 			ctx.AbortWithStatus(401)
 			return
 		}
-		usr, err := m.us.GetUser(ctx, payload.Username)
+		usr, err := m.Querier.GetUser(ctx, payload.Username)
 		if err != nil {
 			m.logger.Info("user does not exist", err)
 			ctx.AbortWithStatus(401)
