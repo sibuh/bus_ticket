@@ -3,7 +3,7 @@ CREATE TABLE tickets (
     trip_id  UUID NOT NULL,
     bus_id UUID NOT NULL,
     user_id uuid NOT NULL,
-    status VARCHAR(20)
+    status VARCHAR(20) NOT NULL DEFAULT 'FREE'
 );
 ALTER TABLE tickets ADD CONSTRAINT tickets_trip_id_foreign FOREIGN KEY(trip_id) REFERENCES trips(id);
 ALTER TABLE tickets ADD CONSTRAINT tickets_bus_id_foreign FOREIGN KEY(bus_id) REFERENCES buses(id);

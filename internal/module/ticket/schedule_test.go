@@ -44,7 +44,7 @@ func noPaymentStatusCheckRequestShouldBeSentWithinS(ctx context.Context, arg1 in
 
 func paymentStatusCheckRequestIsScheduledForCheckoutSession(ctx context.Context) (context.Context, error) {
 
-	id := uuid.NewString()
+	id := uuid.New()
 	var channel = make(chan string, 1)
 
 	callCount := ""
@@ -55,7 +55,7 @@ func paymentStatusCheckRequestIsScheduledForCheckoutSession(ctx context.Context)
 
 	sc := schedule.Init()
 
-	go sc.Schedule(id, channel, 2, func(id string) error {
+	go sc.Schedule(id, channel, 2, func(id uuid.UUID) error {
 		_, err := http.Get(server.URL)
 		if err != nil {
 			return err

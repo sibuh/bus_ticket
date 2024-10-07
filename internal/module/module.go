@@ -4,10 +4,12 @@ import (
 	"context"
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
+
+	"github.com/google/uuid"
 )
 
 type Ticket interface {
-	ReserveTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Session, error)
+	ReserveTicket(ctx context.Context, req model.ReserveTicketRequest) (db.Session, error)
 }
 
 type User interface {
@@ -21,10 +23,10 @@ type Event interface {
 	FetchEvent(ctx context.Context, id int32) (model.Event, error)
 }
 
-type Payment interface {
-	CreatePaymentIntent(ctx context.Context, userID, eventID int32) (string, error)
-	GetPayment(ctx context.Context, intentID string) (db.Payment, error)
-}
+//	type Payment interface {
+//		CreatePaymentIntent(ctx context.Context, userID, eventID int32) (string, error)
+//		// GetPayment(ctx context.Context, intentID string) (db.Payment, error)
+//	}
 type Token interface {
-	GenerateToken(ctx context.Context, tid, uid string) (string, error)
+	GenerateToken(ctx context.Context, tid, uid uuid.UUID) (string, error)
 }

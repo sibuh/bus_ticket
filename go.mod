@@ -15,7 +15,6 @@ require (
 	github.com/lpernett/godotenv v0.0.0-20230527005122-0de1d4c5ef5e
 	github.com/o1egl/paseto v1.0.0
 	github.com/spf13/viper v1.18.2
-	github.com/stripe/stripe-go/v78 v78.7.0
 	golang.org/x/crypto v0.23.0
 	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a
 )

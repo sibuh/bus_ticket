@@ -9,16 +9,14 @@ import (
 )
 
 type ticket struct {
-	log     *slog.Logger
-	payment module.Payment
-	tkt     module.Ticket
+	log *slog.Logger
+	tkt module.Ticket
 }
 
-func Init(log *slog.Logger, pmt module.Payment, tkt module.Ticket) handler.Ticket {
+func Init(log *slog.Logger, tkt module.Ticket) handler.Ticket {
 	return &ticket{
-		log:     log,
-		payment: pmt,
-		tkt:     tkt,
+		log: log,
+		tkt: tkt,
 	}
 }
 func (t *ticket) GetTicket(c *gin.Context) {

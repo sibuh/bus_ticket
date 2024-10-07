@@ -35,7 +35,7 @@ func (m *MockQueries) UpdateTicketStatus(ctx context.Context, arg db.UpdateTicke
 
 	return m.Tkt, nil
 }
-func (m *MockQueries) GetTicket(ctx context.Context, id string) (db.Ticket, error) {
+func (m *MockQueries) GetTicket(ctx context.Context, id uuid.UUID) (db.Ticket, error) {
 	return m.Tkt, nil
 }
 func (m *MockQueries) StoreCheckoutSession(ctx context.Context, arg db.StoreCheckoutSessionParams) (db.Session, error) {
@@ -43,8 +43,8 @@ func (m *MockQueries) StoreCheckoutSession(ctx context.Context, arg db.StoreChec
 		ID:            arg.ID,
 		TicketID:      arg.TicketID,
 		PaymentStatus: arg.PaymentStatus,
-		PaymentURL:    arg.PaymentURL,
-		CancelURl:     arg.CancelURL,
+		PaymentUrl:    arg.PaymentUrl,
+		CancelUrl:     arg.CancelUrl,
 		Amount:        arg.Amount,
 		CreatedAt:     arg.CreatedAt,
 	}
@@ -72,11 +72,10 @@ func TestReserveTicket(t *testing.T) {
 func aTicket(ctx context.Context, arg1 string) (context.Context, error) {
 	mockqueries := &MockQueries{
 		Tkt: db.Ticket{
-			ID:       uuid.NewString(),
-			TripID:   21,
-			BusNo:    2321,
-			Status:   arg1,
-			TicketNo: 23,
+			ID:     uuid.New(),
+			TripID: uuid.New(),
+			BusID:  uuid.New(),
+			Status: arg1,
 		},
 	}
 
@@ -149,8 +148,8 @@ func checkoutSessionShouldBeStored(ctx context.Context) error {
 	if !ok {
 		return fmt.Errorf("failed to ticket data from context")
 	}
-	if queries.Ssn.PaymentURL != session.PaymentURL {
-		return fmt.Errorf("paymentURL not updated want:%s got:%s", session.PaymentURL, queries.Ssn.PaymentURL)
+	if queries.Ssn.PaymentUrl != session.PaymentURL {
+		return fmt.Errorf("paymentURL not updated want:%s got:%s", session.PaymentURL, queries.Ssn.PaymentUrl)
 	}
 	return nil
 }
@@ -162,8 +161,8 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		b, _ := json.Marshal(model.Session{
-			ID:            uuid.NewString(),
-			TicketID:      uuid.NewString(),
+			ID:            uuid.New(),
+			TicketID:      uuid.New(),
 			PaymentStatus: string(constant.Pending),
 			PaymentURL:    "http://payment/session_id",
 			CancelURL:     "http://cancel_url",

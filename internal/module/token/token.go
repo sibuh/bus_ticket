@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/exp/slog"
 )
 
@@ -65,13 +66,13 @@ func (t *NotFoundError) Error() string {
 	return fmt.Sprintf("Couldn't find resource %s with id %s while %s", t.resourceName, t.resourceId, t.context)
 }
 
-func (t *token) GenerateToken(ctx context.Context, tid, uid string) (string, error) {
-	ticketInfo, err := t.GetTicket(ctx, tid)
+func (t *token) GenerateToken(ctx context.Context, tid, uid uuid.UUID) (string, error) {
+	ticketInfo, err := t.Querier.GetTicket(ctx, tid)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", &NotFoundError{
 				resourceName: "ticket",
-				resourceId:   tid,
+				resourceId:   tid.String(),
 				context:      "generating token",
 			}
 		}
@@ -83,18 +84,18 @@ func (t *token) GenerateToken(ctx context.Context, tid, uid string) (string, err
 
 	if ticketInfo.Status == "Onhold" {
 
-		return "", &ErrStatusNotUpdated{ID: tid, Status: string(constant.Onhold), Retry: true}
+		return "", &ErrStatusNotUpdated{ID: tid.String(), Status: string(constant.Onhold), Retry: true}
 	}
 
 	if ticketInfo.Status != "Reserved" {
 		return "", &ErrInvalidTicketStatus{
-			ID:      tid,
+			ID:      tid.String(),
 			Status:  ticketInfo.Status,
 			Message: fmt.Sprintf("got invalid ticket status %s expected ticket status %s", ticketInfo.Status, constant.Reserved),
 		}
 	}
 
-	return t.generateToken(tid, uid, 24*time.Hour)
+	return t.generateToken(tid.String(), uid.String(), 24*time.Hour)
 }
 
 func (t *token) generateToken(tid, uid string, duration time.Duration) (string, error) {
