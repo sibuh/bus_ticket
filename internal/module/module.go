@@ -4,8 +4,6 @@ import (
 	"context"
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/model"
-
-	"github.com/google/uuid"
 )
 
 type Ticket interface {
@@ -23,10 +21,7 @@ type Event interface {
 	FetchEvent(ctx context.Context, id int32) (model.Event, error)
 }
 
-//	type Payment interface {
-//		CreatePaymentIntent(ctx context.Context, userID, eventID int32) (string, error)
-//		// GetPayment(ctx context.Context, intentID string) (db.Payment, error)
-//	}
-type Token interface {
-	GenerateToken(ctx context.Context, tid, uid uuid.UUID) (string, error)
+type Payment interface {
+	CreatePaymentIntent(ctx context.Context, userID, eventID int32) (string, error)
+	GetPayment(ctx context.Context, intentID string) (db.Payment, error)
 }
