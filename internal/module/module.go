@@ -25,3 +25,6 @@ type Payment interface {
 	CreatePaymentIntent(ctx context.Context, userID, eventID int32) (string, error)
 	GetPayment(ctx context.Context, intentID string) (db.Payment, error)
 }
+type Token interface {
+	GenerateToken(ctx context.Context, tid, uid string) (string, error)
+}

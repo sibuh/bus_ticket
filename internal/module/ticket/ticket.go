@@ -170,7 +170,6 @@ func (t *ticket) ReserveTicket(ctx context.Context, req model.ReserveTicketReque
 
 	sId := storedSession.ID
 	ch := make(chan string)
-
 	go t.scheduler.Schedule(sId, ch, 10*time.Minute, t.QueryFunc)
 	return model.Session{
 		ID:            storedSession.ID,
