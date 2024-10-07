@@ -4,14 +4,29 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"event_ticket/internal/constant"
 	"event_ticket/internal/data/db"
+	"event_ticket/internal/module"
+	"event_ticket/internal/utils/token/paseto"
 	"fmt"
-	"log/slog"
+	"time"
+
+	"github.com/google/uuid"
+	"golang.org/x/exp/slog"
 )
 
 type token struct {
 	log *slog.Logger
 	db.Querier
+	key string
+}
+
+func Init(log *slog.Logger, q db.Querier, key string) module.Token {
+	return &token{
+		log:     log,
+		Querier: q,
+		key:     key,
+	}
 }
 
 type UnknownServerError struct {
@@ -20,7 +35,7 @@ type UnknownServerError struct {
 }
 
 func (e *UnknownServerError) Error() string {
-	return e.message
+	return e.message + "cause: " + e.cause.Error()
 }
 
 type NotFoundError struct {
@@ -28,52 +43,64 @@ type NotFoundError struct {
 	resourceId   string
 	context      string
 }
+type ErrStatusNotUpdated struct {
+	ID     string
+	Status string
+	Retry  bool
+}
+type ErrInvalidTicketStatus struct {
+	ID      string
+	Status  string
+	Message string
+}
+
+func (e *ErrInvalidTicketStatus) Error() string {
+	return e.Message
+}
+
+func (e *ErrStatusNotUpdated) Error() string {
+	return fmt.Sprintf("status of ticket with id %s is not yet updated.Expected status %s but got %s", e.ID, constant.Reserved, e.Status)
+}
 
 func (t *NotFoundError) Error() string {
 	return fmt.Sprintf("Couldn't find resource %s with id %s while %s", t.resourceName, t.resourceId, t.context)
 }
 
-func (t *token) GenerateToken(ctx context.Context, payload TokenPayload) error {
-	ticketInfo, err := t.GetTicket(ctx, payload)
+func (t *token) GenerateToken(ctx context.Context, tid, uid uuid.UUID) (string, error) {
+	ticketInfo, err := t.Querier.GetTicket(ctx, tid)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &NotFoundError{
+			return "", &NotFoundError{
 				resourceName: "ticket",
-				resourceId:   payload.Id,
+				resourceId:   tid.String(),
 				context:      "generating token",
 			}
 		}
-		return &UnknownServerError{
+		return "", &UnknownServerError{
 			message: "Unknown server error happened while fetching ticket data",
 			cause:   err,
 		}
 	}
 
 	if ticketInfo.Status == "Onhold" {
-		return fmt.Errorf(`Ticket status not updated yet`)
+
+		return "", &ErrStatusNotUpdated{ID: tid.String(), Status: string(constant.Onhold), Retry: true}
 	}
 
 	if ticketInfo.Status != "Reserved" {
-		return fmt.Errorf(`Application returned with invalid ticket status`)
+		return "", &ErrInvalidTicketStatus{
+			ID:      tid.String(),
+			Status:  ticketInfo.Status,
+			Message: fmt.Sprintf("got invalid ticket status %s expected ticket status %s", ticketInfo.Status, constant.Reserved),
+		}
 	}
 
-	data, err := t.GetTokenData(payload.sessionId); err != nil {
-		return fmt.Errorf("Couldn't fetch token data")
-	}
-	
-	return generateToken(data)
+	return t.generateToken(tid.String(), uid.String(), 24*time.Hour)
 }
 
-func generateToken(data any) {
-	// getSigningKey
-	// know signing algorithms
-	// sign the token and return
+func (t *token) generateToken(tid, uid string, duration time.Duration) (string, error) {
+	maker := paseto.NewPasetoMaker(t.key, duration)
+	userAndTicketID := fmt.Sprintf("%s %s", uid, tid)
+
+	return maker.CreateToken(userAndTicketID)
 }
-
-// ticket info
-// user info
-
-// generateInfoForToken() {}
-// qrcode metadata store, query
-// ui graphics metadata store marege query
-// UI upload mareg

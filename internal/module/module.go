@@ -7,7 +7,7 @@ import (
 )
 
 type Ticket interface {
-	ReserveTicket(ctx context.Context, req model.ReserveTicketRequest) (model.Session, error)
+	ReserveTicket(ctx context.Context, req model.ReserveTicketRequest) (db.Session, error)
 }
 
 type User interface {
@@ -19,9 +19,6 @@ type Event interface {
 	PostEvent(ctx context.Context, postEvent model.Event) (model.Event, error)
 	FetchEvents(ctx context.Context) ([]model.Event, error)
 	FetchEvent(ctx context.Context, id int32) (model.Event, error)
-}
-
-type Token interface {
 }
 
 type Payment interface {

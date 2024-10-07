@@ -2,7 +2,6 @@ package initiator
 
 import (
 	"context"
-	"event_ticket/internal/handler/payment"
 	"event_ticket/internal/handler/ticket"
 	"event_ticket/internal/module/schedule"
 	mtkt "event_ticket/internal/module/ticket"
@@ -12,10 +11,8 @@ import (
 
 	huser "event_ticket/internal/handler/user"
 	"event_ticket/internal/middleware"
-	mpayment "event_ticket/internal/module/payment"
 	"event_ticket/internal/utils/token/paseto"
 
-	hevnt "event_ticket/internal/handler/event"
 	muser "event_ticket/internal/module/user"
 	"event_ticket/internal/routing"
 
@@ -50,7 +47,6 @@ func Initiate() {
 			queries,
 			maker,
 		),
-		mpayment.Init(logger, queries),
 		mtkt.Init(
 			logger,
 			paymentintegration.Init(logger, viper.GetString("payment.url")),
@@ -64,14 +60,9 @@ func Initiate() {
 	}
 	handler := InitHandler(
 		huser.Init(logger, module.user),
-		payment.Init(
-			os.Getenv("PUBLISHABLE_KEY"),
-			os.Getenv("SECRET_KEY"),
-			logger, module.payment),
-		hevnt.Init(logger, module.event),
-		ticket.Init(logger, module.payment, module.ticket),
+		ticket.Init(logger, module.ticket),
 	)
-	routing.InitRouter(v1, handler.user, handler.payment, handler.event, handler.ticket, mware)
+	routing.InitRouter(v1, handler.user, handler.ticket, mware)
 	srv := &http.Server{
 		Addr:        fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port")),
 		ReadTimeout: viper.GetDuration("server.read_time_out") * time.Second,

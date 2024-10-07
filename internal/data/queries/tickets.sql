@@ -1,2 +1,4 @@
 -- name: UpdateTicketStatus :one
-UPDATE tickets SET status ='Onhold' WHERE ticket_no=$1 AND bus_no=$2 AND trip_id=$3 RETURNING *;
+UPDATE tickets SET status =$1 WHERE id=$2 RETURNING *;
+-- name: GetTicket :one
+SELECT * from tickets where id=$1;

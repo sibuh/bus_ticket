@@ -2,6 +2,8 @@ package schedule
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Scheduler struct {
@@ -30,15 +32,15 @@ func (s *Scheduler) remove(id string) {
 	delete(s.smap, id)
 }
 
-func (s *Scheduler) Schedule(id string, ch chan string, duration time.Duration, f func(id string) error) {
-	s.append(id, ch)
+func (s *Scheduler) Schedule(id uuid.UUID, ch chan string, duration time.Duration, f func(id uuid.UUID) error) {
+	s.append(id.String(), ch)
 
 	select {
 	case <-ch:
-		s.remove(id)
+		s.remove(id.String())
 		return
 	case <-time.After(duration * time.Second):
-		s.remove(id)
+		s.remove(id.String())
 		f(id)
 	}
 }

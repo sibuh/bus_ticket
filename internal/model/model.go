@@ -8,6 +8,7 @@ import (
 
 	"github.com/dongri/phonenumber"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/google/uuid"
 )
 
 type User struct {
@@ -174,20 +175,20 @@ type Payment struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 type Ticket struct {
-	ID       string `mapstructure:"id" json:"id"`
-	TripID   int32  `mapstructure:"trip_id" json:"trip_id"`
-	TicketNo int32  `mapstructure:"ticket_no" json:"ticket_no"`
-	BusNo    int32  `mapstructure:"bus_no" json:"bus_no"`
-	Status   string `mapstructure:"status" json:"status"`
+	ID     uuid.UUID `mapstructure:"id" json:"id"`
+	TripID uuid.UUID `mapstructure:"trip_id" json:"trip_id"`
+	// TicketNo int32  `mapstructure:"ticket_no" json:"ticket_no"`
+	BusID  uuid.UUID `mapstructure:"bus_no" json:"bus_no"`
+	Status string    `mapstructure:"status" json:"status"`
 }
 type ReserveTicketRequest struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
+	ID     uuid.UUID `json:"id"`
+	Status string    `json:"status"`
 }
 
 type Session struct {
-	ID            string    `json:"id"`
-	TicketID      string    `json:"ticket_id"`
+	ID            uuid.UUID `json:"id"`
+	TicketID      uuid.UUID `json:"ticket_id"`
 	PaymentStatus string    `json:"payment_status"`
 	PaymentURL    string    `json:"payment_url"`
 	CancelURL     string    `json:"cancel_url"`
