@@ -137,19 +137,19 @@ func userRequestsToReserveTicket(ctx context.Context) (context.Context, error) {
 }
 
 func checkoutSessionShouldBeStored(ctx context.Context) error {
-	session, ok := ctx.Value(contextKey("session-key")).(model.Session)
+	session, ok := ctx.Value(contextKey("session-key")).(db.Session)
 	if !ok {
 		return fmt.Errorf("could not find session data from context")
 	}
-	if session.PaymentURL == "" {
+	if session.PaymentUrl == "" {
 		return fmt.Errorf("payment url is empty")
 	}
 	queries, ok := ctx.Value(contextKey("ticket-data")).(*MockQueries)
 	if !ok {
 		return fmt.Errorf("failed to ticket data from context")
 	}
-	if queries.Ssn.PaymentUrl != session.PaymentURL {
-		return fmt.Errorf("paymentURL not updated want:%s got:%s", session.PaymentURL, queries.Ssn.PaymentUrl)
+	if queries.Ssn.PaymentUrl != session.PaymentUrl {
+		return fmt.Errorf("paymentURL not updated want:%s got:%s", session.PaymentUrl, queries.Ssn.PaymentUrl)
 	}
 	return nil
 }
@@ -194,8 +194,8 @@ func createCheckoutSessionSucceedsForReservingTicketRequest(ctx context.Context)
 }
 
 func theUserShouldGetCheckoutUrl(ctx context.Context) error {
-	session := ctx.Value(contextKey("session-key")).(model.Session)
-	if session.PaymentURL == "" {
+	session := ctx.Value(contextKey("session-key")).(db.Session)
+	if session.PaymentUrl == "" {
 		return fmt.Errorf("no payment url is returned ")
 	}
 

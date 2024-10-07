@@ -81,9 +81,9 @@ func paymentStatusCheckRequestShouldBeSentToPaymentGatewayAfterS(ctx context.Con
 
 func scheduledProcessShouldBeTerminated(ctx context.Context) error {
 	sc := ctx.Value(contextKey("scheduler")).(*schedule.Scheduler)
-	sessionId := ctx.Value(contextKey("sessionId")).(string)
+	sessionId := ctx.Value(contextKey("sessionId")).(uuid.UUID)
 
-	ch := sc.Get(sessionId)
+	ch := sc.Get(sessionId.String())
 
 	if ch != nil {
 		return fmt.Errorf("Scheduled process should have been removed")
@@ -94,10 +94,10 @@ func scheduledProcessShouldBeTerminated(ctx context.Context) error {
 func successOrFailureCallbackArrivesForCheckoutSession(ctx context.Context) context.Context {
 	// callback module initiate
 	sc := ctx.Value(contextKey("scheduler")).(*schedule.Scheduler)
-	sessionId := ctx.Value(contextKey("sessionId")).(string)
+	sessionId := ctx.Value(contextKey("sessionId")).(uuid.UUID)
 	cback := callback.Init(sc)
 	samplePayload := model.Payment{
-		IntentID: sessionId,
+		IntentID: sessionId.String(),
 	}
 	cback.HandlePaymentStatusUpdate(samplePayload)
 
