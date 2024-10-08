@@ -35,24 +35,25 @@ func Initiate() {
 	server.Use(middleware.Cors())
 	v1 := server.Group("v1")
 	logger.Info("initiate database")
-	queries := InitDB(viper.GetString("dbConn"))
+	fmt.Println("connection string", fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=disable",
+		viper.GetString("DB_USER"),
+		viper.GetString("DB_HOST"),
+		viper.GetString("DB_PORT"),
+		viper.GetString("DB_NAME")))
+	queries := InitDB(fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=disable",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME")))
 	logger.Info("intiating storage layer")
-	// storage := NewStorage(user.Init(logger, queries), event.Init(logger, queries), spmt.Init(logger, queries))
 	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration"))
 	mware := middleware.NewMiddleware(logger, maker, queries)
 	sc := schedule.Init()
 	module := NewModule(
-		muser.Init(
-			logger,
-			queries,
-			maker,
-		),
-		mtkt.Init(
-			logger,
+		muser.Init(logger, queries, maker),
+		mtkt.Init(logger,
 			paymentintegration.Init(logger, viper.GetString("payment.url")),
-			queries,
-			sc,
-		),
+			queries, sc),
 	)
 	err := godotenv.Load()
 	if err != nil {
