@@ -9,6 +9,7 @@ import (
 	"event_ticket/internal/utils/token"
 	"fmt"
 	"net/http"
+	"time"
 
 	"golang.org/x/exp/slog"
 )
@@ -85,9 +86,9 @@ func (u *user) LoginUser(ctx context.Context, logReq model.LoginRequest) (string
 		return "", &newError
 	}
 
-	return u.tokenMaker.CreateToken(usr.Username)
+	return u.tokenMaker.CreateToken(usr.Username, time.Hour)
 }
 
 func (u *user) RefreshToken(ctx context.Context, username string) (string, error) {
-	return u.tokenMaker.CreateToken(username)
+	return u.tokenMaker.CreateToken(username, time.Hour)
 }

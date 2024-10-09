@@ -5,9 +5,8 @@ import (
 	"event_ticket/internal/handler/ticket"
 	"event_ticket/internal/module/schedule"
 	mtkt "event_ticket/internal/module/ticket"
+	"event_ticket/internal/module/token"
 	paymentintegration "event_ticket/internal/platform/payment_integration"
-
-	"log"
 
 	huser "event_ticket/internal/handler/user"
 	"event_ticket/internal/middleware"
@@ -24,7 +23,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lpernett/godotenv"
 	"github.com/spf13/viper"
 )
 
@@ -35,11 +33,6 @@ func Initiate() {
 	server.Use(middleware.Cors())
 	v1 := server.Group("v1")
 	logger.Info("initiate database")
-	fmt.Println("connection string", fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=disable",
-		viper.GetString("DB_USER"),
-		viper.GetString("DB_HOST"),
-		viper.GetString("DB_PORT"),
-		viper.GetString("DB_NAME")))
 	queries := InitDB(fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=disable",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_HOST"),
@@ -48,6 +41,7 @@ func Initiate() {
 	logger.Info("intiating storage layer")
 	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration"))
 	mware := middleware.NewMiddleware(logger, maker, queries)
+	token.Init(logger, queries, maker)
 	sc := schedule.Init()
 	module := NewModule(
 		muser.Init(logger, queries, maker),
@@ -55,10 +49,7 @@ func Initiate() {
 			paymentintegration.Init(logger, viper.GetString("payment.url")),
 			queries, sc),
 	)
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	handler := InitHandler(
 		huser.Init(logger, module.user),
 		ticket.Init(logger, module.ticket),

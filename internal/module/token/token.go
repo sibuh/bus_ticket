@@ -7,7 +7,7 @@ import (
 	"event_ticket/internal/constant"
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/module"
-	"event_ticket/internal/utils/token/paseto"
+	tkn "event_ticket/internal/utils/token"
 	"fmt"
 	"time"
 
@@ -18,14 +18,14 @@ import (
 type token struct {
 	log *slog.Logger
 	db.Querier
-	key string
+	paseto tkn.TokenMaker
 }
 
-func Init(log *slog.Logger, q db.Querier, key string) module.Token {
+func Init(log *slog.Logger, q db.Querier, tkn tkn.TokenMaker) module.Token {
 	return &token{
 		log:     log,
 		Querier: q,
-		key:     key,
+		paseto:  tkn,
 	}
 }
 
@@ -99,8 +99,6 @@ func (t *token) GenerateToken(ctx context.Context, tid, uid uuid.UUID) (string, 
 }
 
 func (t *token) generateToken(tid, uid string, duration time.Duration) (string, error) {
-	maker := paseto.NewPasetoMaker(t.key, duration)
 	userAndTicketID := fmt.Sprintf("%s %s", uid, tid)
-
-	return maker.CreateToken(userAndTicketID)
+	return t.paseto.CreateToken(userAndTicketID, duration)
 }
