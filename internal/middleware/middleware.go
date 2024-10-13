@@ -3,12 +3,10 @@ package middleware
 import (
 	"event_ticket/internal/data/db"
 	"event_ticket/internal/utils/token"
-	"event_ticket/internal/utils/token/paseto"
 	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"golang.org/x/exp/slog"
 )
 
@@ -58,19 +56,20 @@ func (m *Middleware) Authenticate() gin.HandlerFunc {
 			ctx.AbortWithStatus(401)
 			return
 		}
-		tokenMaker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration"))
-		payload, err := tokenMaker.VerifyToken(authSlice[1])
+		tknPayload := token.Payload{}
+		payload, err := m.maker.VerifyToken(authSlice[1], &tknPayload)
 		if err != nil {
 			m.logger.Info("failed to verify token", err)
 			ctx.AbortWithStatus(401)
 			return
 		}
-		if !payload.Valid() {
-			m.logger.Info("token is not valid please refresh token")
+		p, ok := payload.(*token.Payload)
+		if !ok {
+			m.logger.Info("invalid auth token payload", p)
 			ctx.AbortWithStatus(401)
 			return
 		}
-		usr, err := m.Querier.GetUser(ctx, payload.Username)
+		usr, err := m.Querier.GetUser(ctx, p.UserID)
 		if err != nil {
 			m.logger.Info("user does not exist", err)
 			ctx.AbortWithStatus(401)

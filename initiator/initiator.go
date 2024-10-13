@@ -38,7 +38,7 @@ func Initiate() {
 	queries := InitDB(viper.GetString("dbConn"))
 	logger.Info("intiating storage layer")
 	// storage := NewStorage(user.Init(logger, queries), event.Init(logger, queries), spmt.Init(logger, queries))
-	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration"))
+	maker := paseto.NewPasetoMaker(viper.GetString("token.key"))
 	mware := middleware.NewMiddleware(logger, maker, queries)
 	sc := schedule.Init()
 	module := NewModule(
@@ -46,7 +46,7 @@ func Initiate() {
 			logger,
 			queries,
 			maker,
-		),
+			viper.GetDuration("token.duration")),
 		mtkt.Init(
 			logger,
 			paymentintegration.Init(logger, viper.GetString("payment.url")),
