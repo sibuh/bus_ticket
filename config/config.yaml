@@ -1,5 +1,5 @@
 
-# dbconn: postgres://sibhat:sibhat@localhost:5432/tickets?sslmode=disable
+dbconn: postgres://root@cockroachdb:26257/tickets?sslmode=disable
 server: 
   port: 8080
   read_time_out: 5

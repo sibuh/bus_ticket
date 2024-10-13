@@ -5,7 +5,6 @@ services:
   cockroachdb:
     image: cockroachdb/cockroach:v22.2.0
     container_name: cockroach
-    # command: ["start-single-node", "--insecure"]    
     ports:
       - "26257:26257"
       - "8080:8080"
@@ -20,15 +19,6 @@ services:
       interval: 5s
       timeout: 2s
       retries: 5
-
-  # init-db:
-  #   image: cockroachdb/cockroach:v22.2.0
-  #   depends_on:
-  #     cockroachdb:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./init.sql:/init.sql
-  #   command: ["sh", "-c", "sleep 10 && cockroach sql --insecure --host=cockroachdb:26257 < /init.sql"]
 
 
   migrate:
@@ -45,35 +35,24 @@ services:
     networks:
       - ticket-network
 
-  # app:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   environment:
-  #     - DB_HOST=cockroachdb
-  #     - DB_PORT=26257
-  #     - DB_USER=root
-  #     - DB_PASSWORD=
-  #     - DB_NAME=tickets
-  #   ports:
-  #     - 8081:8081
-  #   depends_on:
-  #     - cockroachdb
-  #   networks:
-  #     - ticket-network
-    # command: ["go", "run", "main.go"]
-
-  # migrate:
-  #   image: migrate/migrate
-  #   depends_on:
-  #     - cockroachdb
-  #   volumes:
-  #     - ./interanl/data/migrations:/interanl/data/migrations  # Mount migration files
-  #   entrypoint: [
-  #     "/bin/sh", "-c",
-  #     "migrate -path /internal/data/migrations -database 'postgres://root@cockroachdb:26257/tickets?sslmode=disable' up"
-  #   ] 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    # env_file: .env
+    environment:
+      - DB_HOST=cockroachdb
+      - DB_PORT=26257
+      - DB_USER=root
+      - DB_NAME=tickets
+    ports:
+      - 8081:8081
+    depends_on:
+      - cockroachdb
+      - migrate 
+    networks:
+      - ticket-network
      
 volumes:
   cockroach-data:

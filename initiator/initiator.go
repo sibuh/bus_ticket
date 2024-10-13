@@ -5,9 +5,8 @@ import (
 	"event_ticket/internal/handler/ticket"
 	"event_ticket/internal/module/schedule"
 	mtkt "event_ticket/internal/module/ticket"
+	"event_ticket/internal/module/token"
 	paymentintegration "event_ticket/internal/platform/payment_integration"
-
-	"log"
 
 	huser "event_ticket/internal/handler/user"
 	"event_ticket/internal/middleware"
@@ -24,7 +23,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lpernett/godotenv"
 	"github.com/spf13/viper"
 )
 
@@ -44,6 +42,7 @@ func Initiate() {
 	// storage := NewStorage(user.Init(logger, qGetStringueries), event.Init(logger, queries), spmt.Init(logger, queries))
 	maker := paseto.NewPasetoMaker(viper.GetString("token.key"))
 	mware := middleware.NewMiddleware(logger, maker, queries)
+	token.Init(logger, queries, maker)
 	sc := schedule.Init()
 	module := NewModule(
 		muser.Init(
@@ -56,10 +55,7 @@ func Initiate() {
 			paymentintegration.Init(logger, viper.GetString("payment.url")),
 			queries, sc),
 	)
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	handler := InitHandler(
 		huser.Init(logger, module.user),
 		ticket.Init(logger, module.ticket),
