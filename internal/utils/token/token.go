@@ -1,6 +1,10 @@
 package token
 
+type TokenValidator interface {
+	IsValid() error
+}
+
 type TokenMaker interface {
-	CreateToken(username string) (string, error)
-	VerifyToken(token string) (*Payload, error)
+	CreateToken(payload TokenValidator) (string, error)
+	VerifyToken(tokenString string, payload TokenValidator) (TokenValidator, error)
 }

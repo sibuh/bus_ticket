@@ -3,24 +3,26 @@ package token
 import (
 	"errors"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Payload struct {
-	UserID   string
-	IssuedAt time.Time
+	TicketID uuid.UUID
+	UserID   uuid.UUID
 	ExpireAt time.Time
 }
 
-func NewAuthTokenPayload(userId string, duration time.Duration) TokenValidator {
+func NewTicketTokenPayload(userID, ticketID uuid.UUID, duration time.Duration) *Payload {
 	return &Payload{
-		UserID:   userId,
-		IssuedAt: time.Now(),
+		TicketID: ticketID,
+		UserID:   userID,
 		ExpireAt: time.Now().Add(duration),
 	}
 }
 func (pl *Payload) IsValid() error {
 	if time.Now().Before(pl.ExpireAt) {
-		return errors.New("token expired")
+		return errors.New("Token Expired")
 	}
 	return nil
 }
