@@ -1,8 +1,10 @@
 package token
 
-import "time"
+type TokenValidator interface {
+	IsValid() error
+}
 
 type TokenMaker interface {
-	CreateToken(username string, duration time.Duration) (string, error)
-	VerifyToken(token string) (*Payload, error)
+	CreateToken(payload TokenValidator) (string, error)
+	VerifyToken(tokenString string, payload TokenValidator) (TokenValidator, error)
 }

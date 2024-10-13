@@ -39,13 +39,19 @@ func Initiate() {
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_NAME")))
 	logger.Info("intiating storage layer")
-	maker := paseto.NewPasetoMaker(viper.GetString("token.key"), viper.GetDuration("token.duration"))
+	// storage := NewStorage(user.Init(logger, qGetStringueries), event.Init(logger, queries), spmt.Init(logger, queries))
+	maker := paseto.NewPasetoMaker(viper.GetString("token.key"))
 	mware := middleware.NewMiddleware(logger, maker, queries)
 	token.Init(logger, queries, maker)
 	sc := schedule.Init()
 	module := NewModule(
-		muser.Init(logger, queries, maker),
-		mtkt.Init(logger,
+		muser.Init(
+			logger,
+			queries,
+			maker,
+			viper.GetDuration("token.duration")),
+		mtkt.Init(
+			logger,
 			paymentintegration.Init(logger, viper.GetString("payment.url")),
 			queries, sc),
 	)

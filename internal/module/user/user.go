@@ -15,17 +15,19 @@ import (
 )
 
 type user struct {
-	logger     *slog.Logger
-	tokenMaker token.TokenMaker
-	q          db.Querier
+	logger        *slog.Logger
+	tokenMaker    token.TokenMaker
+	q             db.Querier
+	tokenDuration time.Duration
 }
 
-func Init(logger *slog.Logger, q db.Querier, tokenMaker token.TokenMaker) module.User {
+func Init(logger *slog.Logger, q db.Querier, tokenMaker token.TokenMaker, td time.Duration) module.User {
 
 	return &user{
-		logger:     logger,
-		tokenMaker: tokenMaker,
-		q:          q,
+		logger:        logger,
+		tokenMaker:    tokenMaker,
+		q:             q,
+		tokenDuration: td,
 	}
 
 }
@@ -85,10 +87,11 @@ func (u *user) LoginUser(ctx context.Context, logReq model.LoginRequest) (string
 		}
 		return "", &newError
 	}
-
-	return u.tokenMaker.CreateToken(usr.Username, time.Hour)
+	authTokenPayload := token.NewAuthTokenPayload(logReq.Username, u.tokenDuration)
+	return u.tokenMaker.CreateToken(authTokenPayload)
 }
 
 func (u *user) RefreshToken(ctx context.Context, username string) (string, error) {
-	return u.tokenMaker.CreateToken(username, time.Hour)
+	authTokenPayload := token.NewAuthTokenPayload(username, u.tokenDuration)
+	return u.tokenMaker.CreateToken(authTokenPayload)
 }
