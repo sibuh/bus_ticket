@@ -19,7 +19,6 @@ type token struct {
 	log *slog.Logger
 	db.Querier
 	paseto tkn.TokenMaker
-	paseto tkn.TokenMaker
 }
 
 func Init(log *slog.Logger, q db.Querier, maker tkn.TokenMaker) module.Token {

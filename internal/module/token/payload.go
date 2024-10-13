@@ -22,7 +22,7 @@ func NewTicketTokenPayload(userID, ticketID uuid.UUID, duration time.Duration) *
 }
 func (pl *Payload) IsValid() error {
 	if time.Now().Before(pl.ExpireAt) {
-		return errors.New("Token Expired")
+		return errors.New("token Expired")
 	}
 	return nil
 }
