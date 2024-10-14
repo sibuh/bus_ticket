@@ -32,14 +32,17 @@ func Initiate() {
 	server := gin.Default()
 	server.Use(middleware.Cors())
 	v1 := server.Group("v1")
+	fmt.Println("grouping:", v1)
 	logger.Info("initiate database")
-	queries := InitDB(fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=disable",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME")))
+	queries := InitDB(
+		// viper.GetString("dbconn"),
+		fmt.Sprintf("postgres://%s@%s:%s/%s?sslmode=disable",
+			os.Getenv("DB_USER"),
+			os.Getenv("DB_HOST"),
+			os.Getenv("DB_PORT"),
+			os.Getenv("DB_NAME")),
+	)
 	logger.Info("intiating storage layer")
-	// storage := NewStorage(user.Init(logger, qGetStringueries), event.Init(logger, queries), spmt.Init(logger, queries))
 	maker := paseto.NewPasetoMaker(viper.GetString("token.key"))
 	mware := middleware.NewMiddleware(logger, maker, queries)
 	token.Init(logger, queries, maker)
@@ -63,10 +66,9 @@ func Initiate() {
 	routing.InitRouter(v1, handler.user, handler.ticket, mware)
 	srv := &http.Server{
 		Addr:        fmt.Sprintf("%s:%s", viper.GetString("server.host"), viper.GetString("server.port")),
-		ReadTimeout: viper.GetDuration("server.read_time_out") * time.Second,
+		ReadTimeout: viper.GetDuration("server.read_time_out"),
 		Handler:     server,
 	}
-
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	signal.Notify(quit, syscall.SIGTERM)

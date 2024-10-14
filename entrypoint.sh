@@ -7,7 +7,7 @@ cockroach start-single-node --insecure --http-port=8080 --store=cockroach-data &
 sleep 3
 
 # Create the database
-cockroach sql --insecure --host=localhost:26257 -e "CREATE DATABASE IF NOT EXISTS mydb;"
+cockroach sql --insecure --host=localhost:26257 -e "CREATE DATABASE IF NOT EXISTS tickets;"
 
 # Keep the container running
 wait
