@@ -1,6 +1,7 @@
 package user
 
 import (
+	"event_ticket/internal/data/db"
 	"event_ticket/internal/handler"
 	"event_ticket/internal/model"
 	"event_ticket/internal/module"
@@ -68,7 +69,7 @@ func (u *user) LoginUser(c *gin.Context) {
 
 func (u *user) RefreshToken(c *gin.Context) {
 
-	user := c.Value("user").(model.User)
+	user := c.Value("user").(db.User)
 	if user.Username == "" {
 		newError := model.Error{
 			ErrCode:   http.StatusBadRequest,

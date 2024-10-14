@@ -19,7 +19,7 @@ func NewAuthTokenPayload(userId string, duration time.Duration) TokenValidator {
 	}
 }
 func (pl *Payload) IsValid() error {
-	if time.Now().Before(pl.ExpireAt) {
+	if !time.Now().Before(pl.ExpireAt) {
 		return errors.New("token expired")
 	}
 	return nil
