@@ -2,6 +2,7 @@ package token
 
 import (
 	"errors"
+	"event_ticket/internal/data/db"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,4 +26,9 @@ func (pl *Payload) IsValid() error {
 		return errors.New("token Expired")
 	}
 	return nil
+}
+
+type TicketInfo struct {
+	db.User
+	db.Ticket
 }

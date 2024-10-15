@@ -3,7 +3,6 @@ package paseto
 import (
 	"event_ticket/internal/model"
 	"event_ticket/internal/utils/token"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -44,7 +43,6 @@ func (p *pasetoMaker) VerifyToken(tokenString string, payload token.TokenValidat
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("decrypted payload:-->", payload)
 	er := payload.IsValid()
 
 	if er != nil {
