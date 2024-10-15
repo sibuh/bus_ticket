@@ -21,6 +21,8 @@ type token struct {
 	paseto tkn.TokenMaker
 }
 
+var ErrInvalidPayload = errors.New("invalid payload")
+
 func Init(log *slog.Logger, q db.Querier, maker tkn.TokenMaker) module.Token {
 	return &token{
 		log:     log,
@@ -69,4 +71,25 @@ func (t *token) GenerateToken(ctx context.Context, tid, uid uuid.UUID) (string, 
 func (t *token) generateToken(tid, uid uuid.UUID, duration time.Duration) (string, error) {
 	ticketPayload := NewTicketTokenPayload(uid, tid, duration)
 	return t.paseto.CreateToken(ticketPayload)
+}
+func (t *token) VerifyToken(ctx context.Context, tkn string) (TicketInfo, error) {
+	payload := Payload{}
+	pl, err := t.paseto.VerifyToken(tkn, &payload)
+	if err != nil {
+		return TicketInfo{}, err
+	}
+	p, ok := pl.(*Payload)
+	if !ok {
+		return TicketInfo{}, ErrInvalidPayload
+	}
+	tkt, err := t.Querier.GetTicket(ctx, p.TicketID)
+	if err != nil {
+		return TicketInfo{}, err
+	}
+
+	u, err := t.Querier.GetUser(ctx, p.UserID.String())
+	if err != nil {
+		return TicketInfo{}, err
+	}
+	return TicketInfo{u, tkt}, nil
 }
