@@ -41,3 +41,12 @@ func (e *ErrStatusNotUpdated) Error() string {
 func (t *NotFoundError) Error() string {
 	return fmt.Sprintf("Couldn't find resource %s with id %s while %s", t.resourceName, t.resourceId, t.context)
 }
+
+type ErrInvalidPayload struct {
+	payload interface{}
+	message string
+}
+
+func (e ErrInvalidPayload) Error() string {
+	return fmt.Sprintf("invalid ticket token payload got %v", e.payload)
+}

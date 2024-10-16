@@ -21,8 +21,6 @@ type token struct {
 	paseto tkn.TokenMaker
 }
 
-var ErrInvalidPayload = errors.New("invalid payload")
-
 func Init(log *slog.Logger, q db.Querier, maker tkn.TokenMaker) module.Token {
 	return &token{
 		log:     log,
@@ -72,24 +70,23 @@ func (t *token) generateToken(tid, uid uuid.UUID, duration time.Duration) (strin
 	ticketPayload := NewTicketTokenPayload(uid, tid, duration)
 	return t.paseto.CreateToken(ticketPayload)
 }
-func (t *token) VerifyToken(ctx context.Context, tkn string) (TicketInfo, error) {
+func (t *token) VerifyToken(ctx context.Context, tkn string) (db.GetTicketInfoRow, error) {
 	payload := Payload{}
 	pl, err := t.paseto.VerifyToken(tkn, &payload)
 	if err != nil {
-		return TicketInfo{}, err
+		return db.GetTicketInfoRow{}, err
 	}
 	p, ok := pl.(*Payload)
 	if !ok {
-		return TicketInfo{}, ErrInvalidPayload
+		return db.GetTicketInfoRow{}, ErrInvalidPayload{payload: p, message: "invalid ticket token payload"}
 	}
-	tkt, err := t.Querier.GetTicket(ctx, p.TicketID)
+	tkt, err := t.Querier.GetTicketInfo(ctx, db.GetTicketInfoParams{
+		ID:   p.UserID,
+		ID_2: p.TicketID,
+	})
 	if err != nil {
-		return TicketInfo{}, err
+		return db.GetTicketInfoRow{}, err
 	}
 
-	u, err := t.Querier.GetUser(ctx, p.UserID.String())
-	if err != nil {
-		return TicketInfo{}, err
-	}
-	return TicketInfo{u, tkt}, nil
+	return tkt, nil
 }
