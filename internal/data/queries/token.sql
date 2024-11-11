@@ -1,5 +1,5 @@
 -- name: GetTokenData :one
-select id,
+select u.id,
     t.id
 from users u
-    INNER JOIN tickets t on t.user_id = id;
+    INNER JOIN tickets t on t.user_id = u.id;

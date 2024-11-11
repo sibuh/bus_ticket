@@ -7,27 +7,25 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const getTokenData = `-- name: GetTokenData :one
-SELECT id, first_name, last_name, phone, email, username, password, created_at, updated_at, deleted_at
-from users
+select u.id,
+    t.id
+from users u
+    INNER JOIN tickets t on t.user_id = u.id
 `
 
-func (q *Queries) GetTokenData(ctx context.Context) (User, error) {
+type GetTokenDataRow struct {
+	ID   uuid.UUID
+	ID_2 uuid.UUID
+}
+
+func (q *Queries) GetTokenData(ctx context.Context) (GetTokenDataRow, error) {
 	row := q.db.QueryRow(ctx, getTokenData)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.FirstName,
-		&i.LastName,
-		&i.Phone,
-		&i.Email,
-		&i.Username,
-		&i.Password,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
-	)
+	var i GetTokenDataRow
+	err := row.Scan(&i.ID, &i.ID_2)
 	return i, err
 }
