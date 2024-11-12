@@ -1,8 +1,8 @@
 package callback
 
 import (
-	"event_ticket/internal/model"
-	"event_ticket/internal/module/schedule"
+	"bus_ticket/internal/model"
+	"bus_ticket/internal/module/schedule"
 )
 
 type Callback struct {

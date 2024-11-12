@@ -1,8 +1,8 @@
 package platform
 
 import (
+	"bus_ticket/internal/model"
 	"context"
-	"event_ticket/internal/model"
 )
 
 type PaymentGatewayIntegrator interface {

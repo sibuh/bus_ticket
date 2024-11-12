@@ -1,9 +1,9 @@
 package module
 
 import (
+	"bus_ticket/internal/data/db"
+	"bus_ticket/internal/model"
 	"context"
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/model"
 
 	"github.com/google/uuid"
 )

@@ -1,13 +1,13 @@
 package ticket
 
 import (
+	"bus_ticket/internal/constant"
+	"bus_ticket/internal/data/db"
+	"bus_ticket/internal/model"
+	"bus_ticket/internal/module/schedule"
+	paymentintegration "bus_ticket/internal/platform/payment_integration"
 	"context"
 	"encoding/json"
-	"event_ticket/internal/constant"
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/model"
-	"event_ticket/internal/module/schedule"
-	paymentintegration "event_ticket/internal/platform/payment_integration"
 	"net/http"
 	"net/http/httptest"
 	"time"

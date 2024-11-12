@@ -1,10 +1,10 @@
 package ticket
 
 import (
+	"bus_ticket/internal/model"
+	"bus_ticket/internal/module/callback"
+	"bus_ticket/internal/module/schedule"
 	"context"
-	"event_ticket/internal/model"
-	"event_ticket/internal/module/callback"
-	"event_ticket/internal/module/schedule"
 	"fmt"
 
 	"net/http"

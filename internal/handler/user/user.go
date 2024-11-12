@@ -1,10 +1,10 @@
 package user
 
 import (
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/handler"
-	"event_ticket/internal/model"
-	"event_ticket/internal/module"
+	"bus_ticket/internal/data/db"
+	"bus_ticket/internal/handler"
+	"bus_ticket/internal/model"
+	"bus_ticket/internal/module"
 	"fmt"
 	"net/http"
 

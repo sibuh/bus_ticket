@@ -1,8 +1,8 @@
 package paseto
 
 import (
-	"event_ticket/internal/model"
-	"event_ticket/internal/utils/token"
+	"bus_ticket/internal/model"
+	"bus_ticket/internal/utils/token"
 	"log"
 	"net/http"
 

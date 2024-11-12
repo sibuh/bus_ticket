@@ -1,19 +1,19 @@
 package initiator
 
 import (
+	"bus_ticket/internal/handler/ticket"
+	"bus_ticket/internal/module/schedule"
+	mtkt "bus_ticket/internal/module/ticket"
+	"bus_ticket/internal/module/token"
+	paymentintegration "bus_ticket/internal/platform/payment_integration"
 	"context"
-	"event_ticket/internal/handler/ticket"
-	"event_ticket/internal/module/schedule"
-	mtkt "event_ticket/internal/module/ticket"
-	"event_ticket/internal/module/token"
-	paymentintegration "event_ticket/internal/platform/payment_integration"
 
-	huser "event_ticket/internal/handler/user"
-	"event_ticket/internal/middleware"
-	"event_ticket/internal/utils/token/paseto"
+	huser "bus_ticket/internal/handler/user"
+	"bus_ticket/internal/middleware"
+	"bus_ticket/internal/utils/token/paseto"
 
-	muser "event_ticket/internal/module/user"
-	"event_ticket/internal/routing"
+	muser "bus_ticket/internal/module/user"
+	"bus_ticket/internal/routing"
 
 	"fmt"
 	"net/http"

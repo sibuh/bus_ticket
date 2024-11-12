@@ -1,11 +1,11 @@
 package paymentintegration
 
 import (
+	"bus_ticket/internal/model"
+	"bus_ticket/internal/platform"
 	"bytes"
 	"context"
 	"encoding/json"
-	"event_ticket/internal/model"
-	"event_ticket/internal/platform"
 	"fmt"
 	"io/ioutil"
 	"net/http"

@@ -1,8 +1,8 @@
 package ticket
 
 import (
-	"event_ticket/internal/handler"
-	"event_ticket/internal/module"
+	"bus_ticket/internal/handler"
+	"bus_ticket/internal/module"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"

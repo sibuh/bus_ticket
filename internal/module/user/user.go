@@ -1,12 +1,12 @@
 package user
 
 import (
+	"bus_ticket/internal/data/db"
+	"bus_ticket/internal/model"
+	"bus_ticket/internal/module"
+	"bus_ticket/internal/utils/pass"
+	"bus_ticket/internal/utils/token"
 	"context"
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/model"
-	"event_ticket/internal/module"
-	"event_ticket/internal/utils/pass"
-	"event_ticket/internal/utils/token"
 	"fmt"
 	"net/http"
 	"time"

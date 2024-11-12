@@ -1,6 +1,6 @@
-module event_ticket
+module bus_ticket
 
-go 1.22
+go 1.23
 
 require (
 	github.com/aead/chacha20poly1305 v0.0.0-20170617001512-233f39982aeb
@@ -11,6 +11,7 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/google/uuid v1.4.0
 	github.com/jackc/pgconn v1.14.1
+	github.com/jackc/pgtype v1.14.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/o1egl/paseto v1.0.0
 	github.com/spf13/viper v1.18.2
@@ -34,7 +35,6 @@ require (
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gofrs/uuid v4.3.1+incompatible // indirect
-	github.com/golang-migrate/migrate v3.5.4+incompatible // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-memdb v1.3.4 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
@@ -44,7 +44,6 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.2 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgtype v1.14.0 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect

@@ -1,11 +1,11 @@
 package itinerary
 
 import (
+	"bus_ticket/internal/data/db"
+	"bus_ticket/internal/module"
 	"context"
 	"database/sql"
 	"errors"
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/module"
 	"fmt"
 	"time"
 

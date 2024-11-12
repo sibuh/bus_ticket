@@ -1,9 +1,9 @@
 package event
 
 import (
-	"event_ticket/internal/handler"
-	"event_ticket/internal/model"
-	"event_ticket/internal/module"
+	"bus_ticket/internal/handler"
+	"bus_ticket/internal/model"
+	"bus_ticket/internal/module"
 	"net/http"
 	"strconv"
 

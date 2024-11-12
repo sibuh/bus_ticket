@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/utils/token"
+	"bus_ticket/internal/data/db"
+	"bus_ticket/internal/utils/token"
 	"fmt"
 	"strings"
 

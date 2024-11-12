@@ -1,15 +1,15 @@
 package ticket
 
 import (
+	"bus_ticket/internal/constant"
+	"bus_ticket/internal/data/db"
+	"bus_ticket/internal/model"
+	"bus_ticket/internal/module"
+	"bus_ticket/internal/module/schedule"
+	"bus_ticket/internal/platform"
 	"context"
 	"database/sql"
 	"errors"
-	"event_ticket/internal/constant"
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/model"
-	"event_ticket/internal/module"
-	"event_ticket/internal/module/schedule"
-	"event_ticket/internal/platform"
 	"fmt"
 	"net/http"
 	"time"

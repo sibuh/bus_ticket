@@ -2,9 +2,9 @@ package payment
 
 // import (
 // 	"context"
-// 	"event_ticket/internal/data/db"
-// 	"event_ticket/internal/model"
-// 	"event_ticket/internal/module"
+// 	"bus_ticket/internal/data/db"
+// 	"bus_ticket/internal/model"
+// 	"bus_ticket/internal/module"
 // 	"net/http"
 
 // 	"github.com/stripe/stripe-go/v78"

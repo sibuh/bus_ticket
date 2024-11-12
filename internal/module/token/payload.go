@@ -1,8 +1,8 @@
 package token
 
 import (
+	"bus_ticket/internal/data/db"
 	"errors"
-	"event_ticket/internal/data/db"
 	"time"
 
 	"github.com/google/uuid"

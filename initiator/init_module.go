@@ -1,6 +1,6 @@
 package initiator
 
-import "event_ticket/internal/module"
+import "bus_ticket/internal/module"
 
 type Module struct {
 	user   module.User

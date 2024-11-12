@@ -1,8 +1,8 @@
 package initiator
 
 import (
+	"bus_ticket/internal/data/db"
 	"context"
-	"event_ticket/internal/data/db"
 	"log"
 
 	"github.com/jackc/pgx/v4/pgxpool"

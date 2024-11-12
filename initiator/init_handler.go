@@ -1,7 +1,7 @@
 package initiator
 
 import (
-	"event_ticket/internal/handler"
+	"bus_ticket/internal/handler"
 )
 
 type Handler struct {

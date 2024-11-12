@@ -1,8 +1,8 @@
 package routing
 
 import (
-	"event_ticket/internal/handler"
-	"event_ticket/internal/middleware"
+	"bus_ticket/internal/handler"
+	"bus_ticket/internal/middleware"
 
 	"net/http"
 

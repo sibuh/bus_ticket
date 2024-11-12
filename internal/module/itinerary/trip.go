@@ -1,12 +1,12 @@
 package itinerary
 
 import (
+	"bus_ticket/internal/data/db"
+	"bus_ticket/internal/module"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/module"
 	"time"
 
 	"github.com/google/uuid"
@@ -32,10 +32,10 @@ func (l *line) CreateTrip(ctx context.Context, tripPayload db.CreateTripParams, 
 		return db.LineTrip{}, errors.New("Invalid date and time")
 	}
 	diff := tripPayload.Date.Sub(time.Now())
-	config := l.GetClientConfig(clientID)
-	max_res_day := config.max_ticket_reservation_day
+	// config := l.GetClientConfig(uuid.New())
+	// max_res_day := config.max_ticket_reservation_day
 
-	if !(diff.Hours() > max_res_day*24) {
+	if !(diff.Hours() > time.Hour.Hours()*24) {
 		return db.LineTrip{}, errors.New("Try in later days")
 	}
 	trip, err := l.q.CreateTrip(ctx, tripPayload)
@@ -47,6 +47,7 @@ func (l *line) CreateTrip(ctx context.Context, tripPayload db.CreateTripParams, 
 func (l *line) UpdateTrip(ctx context.Context, lineID string) (db.LineTrip, error) {
 	// assign bus and/or driver/redat or so.
 	// fabricated
+	return db.LineTrip{}, nil
 }
 
 // what if a trip is canceled by sys admin

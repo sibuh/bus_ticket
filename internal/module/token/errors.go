@@ -1,7 +1,7 @@
 package token
 
 import (
-	"event_ticket/internal/constant"
+	"bus_ticket/internal/constant"
 	"fmt"
 )
 

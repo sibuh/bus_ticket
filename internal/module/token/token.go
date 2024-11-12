@@ -1,13 +1,13 @@
 package token
 
 import (
+	"bus_ticket/internal/constant"
+	"bus_ticket/internal/data/db"
+	"bus_ticket/internal/module"
+	tkn "bus_ticket/internal/utils/token"
 	"context"
 	"database/sql"
 	"errors"
-	"event_ticket/internal/constant"
-	"event_ticket/internal/data/db"
-	"event_ticket/internal/module"
-	tkn "event_ticket/internal/utils/token"
 	"fmt"
 	"time"
 
